@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Danger Noodle Made of Words</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #eee;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: repeat(25, 1fr);
+      grid-template-rows: repeat(25, 1fr);
+      width: 500px;
+      height: 500px;
+      margin: 50px auto;
+      font-family: 'Courier New', Courier, monospace;
+      border: 2px solid black;
+      background-color: #fff;
+    }
+
+    .a {
+      grid-area: 23 / 23;
+    }
+
+    .b {
+      grid-area: 2 / 19;
+    }
+
+    .c {
+      grid-area: 13 / 5;
+    }
+
+    .d {
+      grid-area: 7 / 11;
+    }
+
+    .e {
+      grid-area: 1 / 9;
+    }
+
+    .f {
+      grid-area: 15 / 14;
+    }
+
+    .g {
+      grid-area: 24 / 4;
+    }
+
+    .h {
+      grid-area: 17 / 3;
+    }
+
+    .i {
+      grid-area: 19 / 9;
+    }
+
+    .j {
+      grid-area: 3 / 14;
+    }
+    
+    .k {
+      grid-area: 10 / 20;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="container">
+      <div class="a" data-coords="23/23">a</div>
+      <div class="b" data-coords="2/19">b</div>
+      <div class="c" data-coords="13/5">c</div>
+      <div class="d" data-coords="7/11">d</div>
+      <div class="e" data-coords="1/9">e</div>
+      <div class="f" data-coords="15/14">f</div>
+      <div class="g" data-coords="24/4">g</div>
+      <div class="h" data-coords="17/3">h</div>
+      <div class="i" data-coords="19/9">i</div>
+      <div class="j" data-coords="3/14">j</div>
+      <div class="k" data-coords="10/20">k</div>
+    </div>
+  </main>
+  <script src="./index.js"></script>
+</body>
+</html>
