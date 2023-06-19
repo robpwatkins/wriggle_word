@@ -13,17 +13,24 @@
     }
 
     body {
+      font-family: 'Courier New', Courier, monospace;
       background-color: #eee;
     }
 
-    .container {
+    .current-word {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 50px 0 5px;
+    }
+
+    .gameboard {
       display: grid;
-      grid-template-columns: repeat(25, 1fr);
-      grid-template-rows: repeat(25, 1fr);
-      width: 500px;
+      grid-template-columns: repeat(10, 1fr);
+      grid-template-rows: repeat(20, 1fr);
+      width: 250px;
       height: 500px;
-      margin: 50px auto;
-      font-family: 'Courier New', Courier, monospace;
+      margin: 0 auto;
       border: 2px solid black;
       background-color: #fff;
     }
@@ -39,18 +46,25 @@
 </head>
 <body>
   <main>
-    <div class="container">
-      <span class="letter b" data-coords="2/19" style="grid-area: 2 / 19">b</span>
-      <span class="letter c" data-coords="13/5" style="grid-area: 13 / 5">c</span>
-      <span class="letter d" data-coords="7/11" style="grid-area: 7 / 11">d</span>
-      <span class="letter e" data-coords="1/9" style="grid-area: 1 / 9;">e</span>
-      <span class="letter f" data-coords="15/14" style="grid-area: 15 / 14">f</span>
-      <span class="letter g" data-coords="24/4" style="grid-area: 24 / 4">g</span>
-      <span class="letter h" data-coords="17/3" style="grid-area: 17 / 3">h</span>
-      <span class="letter i" data-coords="19/9" style="grid-area: 19 / 9">i</span>
-      <span class="letter j" data-coords="3/14" style="grid-area: 3 / 14">j</span>
-      <span class="letter k" data-coords="10/20" style="grid-area: 10 / 20">k</span>
-      <span class="letter l" data-coords="23/23" style="grid-area: 23 / 23">l</span>
+    <section class="current-word">
+      <h3>y</h3>
+    </section>
+    <div class="gameboard">
+      <span class="letter" style="grid-area: 8 / 4;">o</span>
+      <span class="letter" style="grid-area: 5 / 3;">u</span>
+      <span class="letter" style="grid-area: 4 / 8;">_</span>
+      <span class="letter" style="grid-area: 10 / 1;">a</span>
+      <span class="letter" style="grid-area: 7 / 7;">r</span>
+      <span class="letter" style="grid-area: 13 / 2;">e</span>
+      <span class="letter space" style="grid-area: 16 / 6;">_</span>
+      <span class="letter" style="grid-area: 2 / 4;">a</span>
+      <span class="letter space" style="grid-area: 6 / 10;">_</span>
+      <span class="letter" style="grid-area: 18 / 2;">w</span>
+      <span class="letter" style="grid-area: 14 / 8;">i</span>
+      <span class="letter" style="grid-area: 12 / 5;">n</span>
+      <span class="letter" style="grid-area: 6 / 2;">n</span>
+      <span class="letter" style="grid-area: 16 / 4;">e</span>
+      <span class="letter" style="grid-area: 19 / 9;">r</span>
     </div>
   </main>
   <script src="./index.js"></script>
