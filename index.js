@@ -1,38 +1,42 @@
 const container = document.querySelector('.container');
 
-// const body = '';
-
-const position = {
+const leadCoords = {
   row: 2,
   column: 5
 };
 
-const worm = document.createElement('div');
-worm.style.display = 'flex';
-worm.innerHTML = '<span>a</span>';
+const lead = document.createElement('span');
+lead.innerHTML = 'a';
 
-const { row, column } = position;
-worm.style.fontWeight = 'bold';
-worm.style.gridArea = `${row}/${column}`;
+const { row, column } = leadCoords;
+lead.classList.add('letter', 'active');
+lead.style.gridArea = `${row}/${column}`;
 
-container.insertAdjacentElement('afterbegin', worm);
+container.insertAdjacentElement('beforeend', lead);
 
-window.addEventListener('keyup', (e) => {
-  const { code } = e;
+const letters = [lead];
 
-  if (code === 'ArrowUp') position.row--;
-  else if (code === 'ArrowRight') position.column++;
-  else if (code === 'ArrowDown') position.row++;
-  else position.column--;
+window.addEventListener('keyup', ({ code }) => {
+  if (code === 'ArrowUp') leadCoords.row--;
+  else if (code === 'ArrowRight') leadCoords.column++;
+  else if (code === 'ArrowDown') leadCoords.row++;
+  else leadCoords.column--;
 
-  const newCoords = `${position.row}/${position.column}`;
+  const newCoords = `${leadCoords.row}/${leadCoords.column}`;
 
-  const letter = document.querySelector(`[data-coords="${newCoords}"]`);
+  const newLetter = document.querySelector(`[data-coords="${newCoords}"]`);
   
-  if (letter) {
-    letter.remove();
-    worm.insertAdjacentElement('beforeend', letter);
+  if (newLetter) {
+    letters.unshift(newLetter);
+    leadCoords.column++;
+
+    letters.forEach((letter, idx) => {
+      if (idx !== 0) {
+        const { gridArea: nextCoords } = letters[idx - 1].style;
+        letter.style.gridArea = nextCoords;
+      } else letter.style.gridArea = `${leadCoords.row}/${leadCoords.column}`;
+    });
   }
 
-  worm.style.gridArea = newCoords;
+  lead.style.gridArea = newCoords;
 })
