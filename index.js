@@ -5,7 +5,7 @@ const leadCoords = {
   column: 5
 };
 
-const lead = document.createElement('span');
+let lead = document.createElement('span');
 lead.innerHTML = 'a';
 
 const { row, column } = leadCoords;
@@ -15,28 +15,36 @@ lead.style.gridArea = `${row}/${column}`;
 container.insertAdjacentElement('beforeend', lead);
 
 const letters = [lead];
+let direction;
 
 window.addEventListener('keyup', ({ code }) => {
-  if (code === 'ArrowUp') leadCoords.row--;
-  else if (code === 'ArrowRight') leadCoords.column++;
-  else if (code === 'ArrowDown') leadCoords.row++;
+  direction = code.replace('Arrow', '').toLowerCase();
+
+  if (direction === 'up') leadCoords.row--;
+  else if (direction === 'right') leadCoords.column++;
+  else if (direction === 'down') leadCoords.row++;
   else leadCoords.column--;
 
   const newCoords = `${leadCoords.row}/${leadCoords.column}`;
-
   const newLetter = document.querySelector(`[data-coords="${newCoords}"]`);
   
   if (newLetter) {
-    letters.unshift(newLetter);
-    leadCoords.column++;
+    if (direction === 'up') leadCoords.row--;
+    else if (direction === 'right') leadCoords.column++;
+    else if (direction === 'down') leadCoords.row++;
+    else leadCoords.column--;
 
-    letters.forEach((letter, idx) => {
-      if (idx !== 0) {
-        const { gridArea: nextCoords } = letters[idx - 1].style;
-        letter.style.gridArea = nextCoords;
-      } else letter.style.gridArea = `${leadCoords.row}/${leadCoords.column}`;
-    });
+    delete newLetter.dataset.coords;
+    newLetter.classList.add('active');
+    letters.push(newLetter);
   }
 
-  lead.style.gridArea = newCoords;
+  letters.forEach((letter, idx) => {
+    if (idx !== (letters.length - 1)) {
+      const { gridArea: nextCoords } = letters[idx + 1].style;
+      letter.style.gridArea = nextCoords;
+    } else {
+      letter.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
+    }
+  });
 })
