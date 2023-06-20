@@ -1,25 +1,33 @@
 const gameboard = document.querySelector('.gameboard');
+const initialLetters = document.querySelectorAll('.letter');
 const currentWord = document.querySelector('.current-word');
 
-const leadCoords = {
-  row: 10,
-  column: 6
+const letters = [];
+const leadCoords = {};
+
+initialLetters
+  .forEach(el => el.addEventListener('click', handleClick));
+
+function handleClick(e) {
+  const { target: letter } = e;
+  letter.classList.add('active');
+  letters.push(letter);
+  currentWord.innerHTML = `<h3>${letter.innerHTML}</h3`;
+
+  const [row, column] = letter.style.gridArea.split(' / ');
+  leadCoords.row = Number(row);
+  leadCoords.column = Number(column);
+
+  initialLetters.forEach(el => {
+    el.classList.remove('initial');
+    el.removeEventListener('click', handleClick)
+  });
+
+  window.addEventListener('keyup', handleKeyUp);
 };
 
-const lead = document.createElement('span');
-lead.innerHTML = 'y';
-
-const { row, column } = leadCoords;
-lead.classList.add('letter', 'active');
-lead.style.gridArea = `${row} / ${column}`;
-
-gameboard.insertAdjacentElement('beforeend', lead);
-
-const letters = [lead];
-
-window.addEventListener('keyup', handleKeyUp);
-
-function handleKeyUp({ code }) {
+function handleKeyUp(e) {
+  const { code } = e;
   const direction = code.replace('Arrow', '').toLowerCase();
   updateCoords(direction);
 

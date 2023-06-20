@@ -28,6 +28,7 @@
       display: grid;
       grid-template-columns: repeat(10, 1fr);
       grid-template-rows: repeat(20, 1fr);
+      align-items: center;
       width: 250px;
       height: 500px;
       margin: 0 auto;
@@ -37,6 +38,10 @@
 
     .letter {
       text-align: center;
+    }
+
+    .letter.initial {
+      cursor: pointer;
     }
 
     .letter.active {
@@ -55,24 +60,25 @@
 <body>
   <main>
     <section class="current-word">
-      <h3>y</h3>
+      <h3>_</h3>
     </section>
     <div class="gameboard">
-      <span class="letter" style="grid-area: 8 / 4;">o</span>
-      <span class="letter" style="grid-area: 5 / 3;">u</span>
-      <span class="letter space" style="grid-area: 4 / 8;">_</span>
-      <span class="letter" style="grid-area: 10 / 1;">a</span>
-      <span class="letter" style="grid-area: 7 / 7;">r</span>
-      <span class="letter" style="grid-area: 13 / 2;">e</span>
-      <span class="letter space" style="grid-area: 16 / 6;">_</span>
-      <span class="letter" style="grid-area: 2 / 4;">a</span>
-      <span class="letter space" style="grid-area: 6 / 10;">_</span>
-      <span class="letter" style="grid-area: 18 / 2;">w</span>
-      <span class="letter" style="grid-area: 14 / 8;">i</span>
-      <span class="letter" style="grid-area: 12 / 5;">n</span>
-      <span class="letter" style="grid-area: 6 / 2;">n</span>
-      <span class="letter" style="grid-area: 16 / 4;">e</span>
-      <span class="letter" style="grid-area: 19 / 9;">r</span>
+      <span class="initial letter" style="grid-area: 10 / 6;">y</span>
+      <span class="initial letter" style="grid-area: 8 / 4;">o</span>
+      <span class="initial letter" style="grid-area: 5 / 3;">u</span>
+      <span class="initial letter space" style="grid-area: 4 / 8;">_</span>
+      <span class="initial letter" style="grid-area: 10 / 1;">a</span>
+      <span class="initial letter" style="grid-area: 7 / 7;">r</span>
+      <span class="initial letter" style="grid-area: 13 / 2;">e</span>
+      <span class="initial letter space" style="grid-area: 16 / 6;">_</span>
+      <span class="initial letter" style="grid-area: 2 / 4;">a</span>
+      <span class="initial letter space" style="grid-area: 6 / 10;">_</span>
+      <span class="initial letter" style="grid-area: 18 / 2;">w</span>
+      <span class="initial letter" style="grid-area: 14 / 8;">i</span>
+      <span class="initial letter" style="grid-area: 12 / 5;">n</span>
+      <span class="initial letter" style="grid-area: 6 / 2;">n</span>
+      <span class="initial letter" style="grid-area: 16 / 4;">e</span>
+      <span class="initial letter" style="grid-area: 19 / 9;">r</span>
     </div>
   </main>
   <script src="./index.js"></script>
