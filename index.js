@@ -27,9 +27,9 @@ function handleClick(e) {
 };
 
 function handleKeyUp(e) {
-  const { code } = e;
-  const direction = code.replace('Arrow', '').toLowerCase();
-  updateCoords(direction);
+  if (!['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'].includes(e.code)) return;
+
+  updateCoords(e.code);
 
   const newLetter = document
     .querySelector(`[style="grid-area: ${leadCoords.row} / ${leadCoords.column};"]`);
@@ -39,11 +39,11 @@ function handleKeyUp(e) {
   updateLetterPositions();
 };
 
-function updateCoords(direction) {
-  if (direction === 'up') leadCoords.row--;
-  else if (direction === 'right') leadCoords.column++;
-  else if (direction === 'down') leadCoords.row++;
-  else if (direction === 'left') leadCoords.column--;
+function updateCoords(code) {
+  if (code === 'ArrowUp') leadCoords.row--;
+  else if (code === 'ArrowRight') leadCoords.column++;
+  else if (code === 'ArrowDown') leadCoords.row++;
+  else if (code === 'ArrowLeft') leadCoords.column--;
 };
 
 function addNewLetter(newLetter, direction) {
@@ -67,9 +67,9 @@ function updateLetterPositions() {
       : {};
 
     if (letter.innerHTML === '_') setOrientation(letter, nextCoords);
-    if (idx !== (letters.length - 1)) {
-      letter.style.gridArea = nextCoords;
-    } else letter.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
+
+    if (idx !== (letters.length - 1)) letter.style.gridArea = nextCoords;
+    else letter.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
   });
 };
 
