@@ -42,6 +42,14 @@
     .letter.active {
       font-weight: bold;
     }
+
+    .space[data-orientation="vertical"] {
+      transform: rotate(90deg);
+    }
+
+    .space[data-orientation="horizontal"] {
+      transform: unset;
+    }
   </style>
 </head>
 <body>
@@ -52,7 +60,7 @@
     <div class="gameboard">
       <span class="letter" style="grid-area: 8 / 4;">o</span>
       <span class="letter" style="grid-area: 5 / 3;">u</span>
-      <span class="letter" style="grid-area: 4 / 8;">_</span>
+      <span class="letter space" style="grid-area: 4 / 8;">_</span>
       <span class="letter" style="grid-area: 10 / 1;">a</span>
       <span class="letter" style="grid-area: 7 / 7;">r</span>
       <span class="letter" style="grid-area: 13 / 2;">e</span>
