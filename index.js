@@ -11,23 +11,22 @@ initialLetters
   .forEach(el => el.addEventListener('click', handleClick));
 
 function initiateBoard() {
-  const alphabet = getAlphabet();
-  console.log('alphabet: ', alphabet);
-  alphabet.push('_');
+  const alphabet = Array
+    .from(Array(26))
+    .map((_, idx) => String.fromCharCode(idx + 97));
 
-  alphabet.forEach((letter, idx) => generateLetter(letter, idx));
+  [...alphabet, '_'].forEach(letter => placeLetter(letter));
 };
 
-function generateLetter(letter) {
-  const row = getRandomNumber(21).toString();
-  const column = getRandomNumber(10).toString();
+function placeLetter(letter) {
+  const [row, column] = [21, 10].map(max => getRandomNumber(max).toString());
 
   const coordsInUse = letters.some(letter => {
     const [existingRow, existingColumn] = letter.style.gridArea.split(' / ');
     return (row === existingRow && column === existingColumn);
   });
 
-  if (coordsInUse) return generateLetter(letter);
+  if (coordsInUse) return placeLetter(letter);
 
   const styleAttr = `style="grid-area: ${row} / ${column};"`;
 
@@ -40,13 +39,6 @@ function generateLetter(letter) {
 
 function getRandomNumber(max, min = 0) {
   return Math.floor(Math.random() * (max - min) + min);
-};
-
-function getAlphabet() {
-  return Array
-    .from(Array(26))
-    .map((el, idx) => idx + 97)
-    .map(num => String.fromCharCode(num));
 };
 
 function handleClick(e) {
