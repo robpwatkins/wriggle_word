@@ -2,35 +2,40 @@ const gameboard = document.querySelector('.gameboard');
 const initialLetters = document.querySelectorAll('.letter');
 const currentWord = document.querySelector('.current-word');
 
-initiateBoard();
-
 const letters = [];
 const leadCoords = {};
+
+initiateBoard();
 
 initialLetters
   .forEach(el => el.addEventListener('click', handleClick));
 
 function initiateBoard() {
   const alphabet = getAlphabet();
+  console.log('alphabet: ', alphabet);
+  alphabet.push('_');
+
   alphabet.forEach((letter, idx) => generateLetter(letter, idx));
 };
 
-function generateLetter(letter, idx) {
-  const row = getRandomNumber(10);
-  const column = getRandomNumber(21);
+function generateLetter(letter) {
+  const row = getRandomNumber(21).toString();
+  const column = getRandomNumber(10).toString();
 
-  if (idx !== 0) {
+  const coordsInUse = letters.some(letter => {
+    const [existingRow, existingColumn] = letter.style.gridArea.split(' / ');
+    return (row === existingRow && column === existingColumn);
+  });
 
-  }
+  if (coordsInUse) return generateLetter(letter);
+
+  const styleAttr = `style="grid-area: ${row} / ${column};"`;
 
   gameboard.insertAdjacentHTML('beforeend', `
-    <span
-      class="initial letter"
-      style="grid-area: ${getRandomNumber(21)} / ${getRandomNumber(10)};"
-    >
-        ${letter}
-    </span>
+    <span class="initial letter" ${styleAttr}>${letter}</span>
   `);
+
+  letters.push(document.querySelector(`[${styleAttr}]`));
 };
 
 function getRandomNumber(max, min = 0) {
@@ -38,12 +43,10 @@ function getRandomNumber(max, min = 0) {
 };
 
 function getAlphabet() {
-  const alphabet = [];
-  for (let i = 'a'.charCodeAt(0); i <= 'z'.charCodeAt(0); i++) {
-    alphabet.push(String.fromCharCode(i));
-  }
-
-  return alphabet;
+  return Array
+    .from(Array(26))
+    .map((el, idx) => idx + 97)
+    .map(num => String.fromCharCode(num));
 };
 
 function handleClick(e) {
