@@ -2,11 +2,49 @@ const gameboard = document.querySelector('.gameboard');
 const initialLetters = document.querySelectorAll('.letter');
 const currentWord = document.querySelector('.current-word');
 
+initiateBoard();
+
 const letters = [];
 const leadCoords = {};
 
 initialLetters
   .forEach(el => el.addEventListener('click', handleClick));
+
+function initiateBoard() {
+  const alphabet = getAlphabet();
+  alphabet.forEach((letter, idx) => generateLetter(letter, idx));
+};
+
+function generateLetter(letter, idx) {
+  const row = getRandomNumber(10);
+  const column = getRandomNumber(21);
+
+  if (idx !== 0) {
+
+  }
+
+  gameboard.insertAdjacentHTML('beforeend', `
+    <span
+      class="initial letter"
+      style="grid-area: ${getRandomNumber(21)} / ${getRandomNumber(10)};"
+    >
+        ${letter}
+    </span>
+  `);
+};
+
+function getRandomNumber(max, min = 0) {
+  return Math.floor(Math.random() * (max - min) + min);
+};
+
+function getAlphabet() {
+  const alphabet = [];
+  for (let i = 'a'.charCodeAt(0); i <= 'z'.charCodeAt(0); i++) {
+    alphabet.push(String.fromCharCode(i));
+  }
+
+  return alphabet;
+};
 
 function handleClick(e) {
   const { target: letter } = e;
@@ -34,7 +72,7 @@ function handleKeyUp(e) {
   const newLetter = document
     .querySelector(`[style="grid-area: ${leadCoords.row} / ${leadCoords.column};"]`);
   
-  if (newLetter) addNewLetter(newLetter, direction);
+  if (newLetter) addNewLetter(newLetter, e.code);
 
   updateLetterPositions();
 };
