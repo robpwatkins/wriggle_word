@@ -1,11 +1,13 @@
 const gameboard = document.querySelector('.gameboard');
-const initialLetters = document.querySelectorAll('.letter');
 const currentWord = document.querySelector('.current-word');
 
-const letters = [];
+const boardLetters = [];
+const activeLetters = [];
 const leadCoords = {};
 
 initiateBoard();
+
+const initialLetters = document.querySelectorAll('.letter');
 
 initialLetters
   .forEach(el => el.addEventListener('click', handleClick));
@@ -16,12 +18,13 @@ function initiateBoard() {
     .map((_, idx) => String.fromCharCode(idx + 97));
 
   [...alphabet, '_'].forEach(letter => placeLetter(letter));
+  // TO DO: Add backspace ('⌫')
 };
 
 function placeLetter(letter) {
   const [row, column] = [21, 10].map(max => getRandomNumber(max).toString());
 
-  const coordsInUse = letters.some(letter => {
+  const coordsInUse = boardLetters.some(letter => {
     const [existingRow, existingColumn] = letter.style.gridArea.split(' / ');
     return (row === existingRow && column === existingColumn);
   });
@@ -31,10 +34,10 @@ function placeLetter(letter) {
   const styleAttr = `style="grid-area: ${row} / ${column};"`;
 
   gameboard.insertAdjacentHTML('beforeend', `
-    <span class="initial letter" ${styleAttr}>${letter}</span>
+    <span class="initial letter${letter === '_' ? ' space' : ''}" ${styleAttr}>${letter}</span>
   `);
 
-  letters.push(document.querySelector(`[${styleAttr}]`));
+  boardLetters.push(document.querySelector(`[${styleAttr}]`));
 };
 
 function getRandomNumber(max, min = 0) {
@@ -44,7 +47,7 @@ function getRandomNumber(max, min = 0) {
 function handleClick(e) {
   const { target: letter } = e;
   letter.classList.add('active');
-  letters.push(letter);
+  activeLetters.push(letter);
   currentWord.innerHTML = `<h3>${letter.innerHTML}</h3`;
 
   const [row, column] = letter.style.gridArea.split(' / ');
@@ -83,7 +86,7 @@ function addNewLetter(newLetter, direction) {
   updateCoords(direction);
 
   newLetter.classList.add('active');
-  letters.push(newLetter);
+  activeLetters.push(newLetter);
 
   if (newLetter.innerHTML === '_') currentWord.innerHTML = '<h3>_</h3>';
   else {
@@ -94,14 +97,14 @@ function addNewLetter(newLetter, direction) {
 };
 
 function updateLetterPositions() {
-  letters.forEach((letter, idx) => {
-    const { gridArea: nextCoords } = (idx !== (letters.length - 1))
-      ? letters[idx + 1].style
+  activeLetters.forEach((letter, idx) => {
+    const { gridArea: nextCoords } = (idx !== (activeLetters.length - 1))
+      ? activeLetters[idx + 1].style
       : {};
 
     if (letter.innerHTML === '_') setOrientation(letter, nextCoords);
 
-    if (idx !== (letters.length - 1)) letter.style.gridArea = nextCoords;
+    if (idx !== (activeLetters.length - 1)) letter.style.gridArea = nextCoords;
     else letter.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
   });
 };
@@ -111,7 +114,7 @@ function setOrientation(letter, nextCoords) {
   const [nextRow] = nextCoords
     ? nextCoords.split(' / ')
     : Object.values(leadCoords).map(coord => coord.toString());
-
+  
   const orientation = (currentRow === nextRow) ? 'horizontal' : 'vertical';
   letter.setAttribute('data-orientation', orientation);
 };
