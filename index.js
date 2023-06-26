@@ -22,9 +22,9 @@ initialLetters
   .forEach(el => el.addEventListener('click', handleClick));
 
 function initiateBoard() {
-  let currentRow = 0;
+  let currentRow = 1;
   while (currentRow <= rowCount) {
-    let currentColumn = 0;
+    let currentColumn = 1;
     while (currentColumn <= columnCount) {
       availableCoords.push({ row: currentRow, column: currentColumn });
       currentColumn++;
@@ -40,7 +40,8 @@ function initiateBoard() {
 };
 
 function placeLetter(letter) {
-  const { row, column } = getRandomCoords();
+  const randomIdx = Math.floor(Math.random() * (availableCoords.length - 1));
+  const [{ row, column }] = availableCoords.splice(randomIdx, 1);
 
   const styleAttr = `style="grid-area: ${row} / ${column};"`;
 
@@ -50,7 +51,7 @@ function placeLetter(letter) {
 
   boardLetters.push(document.querySelector(`[${styleAttr}]`));
 
-  [{ row, column }, ...getSurroundingCoords(row, column)]
+  [...getSurroundingCoords(row, column)]
     .forEach(({ row: unavailableRow, column: unavailableColumn }) => {
       const coordsIdx = availableCoords
         .findIndex(({ row: availableRow, column: availableColumn }) => (
@@ -58,20 +59,6 @@ function placeLetter(letter) {
         ))
       availableCoords.splice(coordsIdx, 1);
     })
-};
-
-function getRandomCoords() {
-  const [row, column] = [30, 14]
-    .map(max => Math.floor(Math.random() * (max - 2) + 2));
-
-  // const excluded = excludeCoords.some(coords => {
-  //   const { row: excludeRow, column: excludeColumn } = coords;
-  //   return ((row === excludeRow) && (column === excludeColumn));
-  // });
-
-  // if (excluded) return getRandomCoords();
-  
-  return { row, column };
 };
 
 function getSurroundingCoords(row, column) {
