@@ -1,9 +1,17 @@
 const gameboard = document.querySelector('.gameboard');
 const currentWord = document.querySelector('.current-word');
 
+const rowCount = 30;
+const columnCount = 15;
+
+gameboard.style.gridTemplateRows = `repeat(${rowCount}, 1fr)`;
+gameboard.style.gridTemplateColumns = `repeat(${columnCount}, 1fr)`;
+gameboard.style.height = `${rowCount * 20}px`;
+gameboard.style.width = `${columnCount * 20}px`;
+
 const boardLetters = [];
 const activeLetters = [];
-const excludeCoords = [];
+const availableCoords = [];
 const leadCoords = {};
 
 initiateBoard();
@@ -14,12 +22,21 @@ initialLetters
   .forEach(el => el.addEventListener('click', handleClick));
 
 function initiateBoard() {
+  let currentRow = 0;
+  while (currentRow <= rowCount) {
+    let currentColumn = 0;
+    while (currentColumn <= columnCount) {
+      availableCoords.push({ row: currentRow, column: currentColumn });
+      currentColumn++;
+    }
+    currentRow++;
+  }
+
   const alphabet = Array
     .from(Array(26))
     .map((_, idx) => String.fromCharCode(idx + 97));
 
   [...alphabet, '_'].forEach(letter => placeLetter(letter));
-  // TO DO: Add backspace ('⌫')
 };
 
 function placeLetter(letter) {
@@ -33,19 +50,26 @@ function placeLetter(letter) {
 
   boardLetters.push(document.querySelector(`[${styleAttr}]`));
 
-  excludeCoords.push(...getSurroundingCoords(row, column), { row, column });
+  [{ row, column }, ...getSurroundingCoords(row, column)]
+    .forEach(({ row: unavailableRow, column: unavailableColumn }) => {
+      const coordsIdx = availableCoords
+        .findIndex(({ row: availableRow, column: availableColumn }) => (
+          (availableRow === unavailableRow && availableColumn === unavailableColumn)
+        ))
+      availableCoords.splice(coordsIdx, 1);
+    })
 };
 
 function getRandomCoords() {
   const [row, column] = [30, 14]
     .map(max => Math.floor(Math.random() * (max - 2) + 2));
 
-  const excluded = excludeCoords.some(coords => {
-    const { row: excludeRow, column: excludeColumn } = coords;
-    return ((row === excludeRow) && (column === excludeColumn));
-  });
+  // const excluded = excludeCoords.some(coords => {
+  //   const { row: excludeRow, column: excludeColumn } = coords;
+  //   return ((row === excludeRow) && (column === excludeColumn));
+  // });
 
-  if (excluded) return getRandomCoords();
+  // if (excluded) return getRandomCoords();
   
   return { row, column };
 };
@@ -75,8 +99,10 @@ function handleClick(e) {
 
   initialLetters.forEach(el => {
     el.classList.remove('initial');
-    el.removeEventListener('click', handleClick)
+    el.removeEventListener('click', handleClick);
   });
+
+  placeLetter(letter.innerHTML);
 
   window.addEventListener('keyup', handleKeyUp);
 };
@@ -89,7 +115,10 @@ function handleKeyUp(e) {
   const newLetter = document
     .querySelector(`[style="grid-area: ${leadCoords.row} / ${leadCoords.column};"]`);
   
-  if (newLetter) addNewLetter(newLetter, e.code);
+  if (newLetter) {
+    addNewLetter(newLetter, e.code);
+    placeLetter(newLetter.innerHTML);
+  }
 
   updateLetterPositions();
 };
