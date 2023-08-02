@@ -22,21 +22,30 @@ initialLetters
   .forEach(el => el.addEventListener('click', handleClick));
 
 function initiateBoard() {
-  let currentRow = 1;
-  while (currentRow <= rowCount) {
-    let currentColumn = 1;
-    while (currentColumn <= columnCount) {
-      availableCoords.push({ row: currentRow, column: currentColumn });
-      currentColumn++;
-    }
-    currentRow++;
-  }
+  setAvailableCoords();
 
   const alphabet = Array
     .from(Array(26))
     .map((_, idx) => String.fromCharCode(idx + 97));
 
   [...alphabet, '_'].forEach(letter => placeLetter(letter));
+
+  showAvailableCoords();
+};
+
+function setAvailableCoords() {
+  let currentRow = 1;
+  
+  while (currentRow <= rowCount) {
+    let currentColumn = 1;
+  
+    while (currentColumn <= columnCount) {
+      availableCoords.push({ row: currentRow, column: currentColumn });
+      currentColumn++;
+    }
+
+    currentRow++;
+  }
 };
 
 function placeLetter(letter) {
@@ -57,7 +66,8 @@ function placeLetter(letter) {
         .findIndex(({ row: availableRow, column: availableColumn }) => (
           (availableRow === unavailableRow && availableColumn === unavailableColumn)
         ))
-      availableCoords.splice(coordsIdx, 1);
+        
+      if (coordsIdx !== -1) availableCoords.splice(coordsIdx, 1);
     })
 };
 
@@ -108,6 +118,8 @@ function handleKeyUp(e) {
   }
 
   updateLetterPositions();
+
+  showAvailableCoords();
 };
 
 function updateCoords(code) {
@@ -117,15 +129,15 @@ function updateCoords(code) {
   else if (code === 'ArrowLeft') leadCoords.column--;
 };
 
-function addNewLetter(newLetter, direction) {
+function addNewLetter(letter, direction) {
   updateCoords(direction);
 
-  newLetter.classList.add('active');
-  activeLetters.push(newLetter);
+  letter.classList.add('active');
+  activeLetters.push(letter);
 
-  if (newLetter.innerHTML === '_') currentWord.innerHTML = '<h3>_</h3>';
+  if (letter.innerHTML === '_') currentWord.innerHTML = '<h3>_</h3>';
   else {
-    const newLetterHeading = `<h3>${newLetter.innerHTML}</h3>`;
+    const newLetterHeading = `<h3>${letter.innerHTML}</h3>`;
     if (currentWord.innerHTML.includes('_')) currentWord.innerHTML = newLetterHeading;
     else currentWord.insertAdjacentHTML('beforeend', newLetterHeading);
   }
@@ -133,13 +145,19 @@ function addNewLetter(newLetter, direction) {
 
 function updateLetterPositions() {
   activeLetters.forEach((letter, idx) => {
-    const { gridArea: nextCoords } = (idx !== (activeLetters.length - 1))
-      ? activeLetters[idx + 1].style
-      : {};
+    const lastIdx = activeLetters.length - 1;
+
+    const { gridArea: nextCoords } = (idx !== lastIdx) ? activeLetters[idx + 1].style : {};
 
     if (letter.innerHTML === '_') setOrientation(letter, nextCoords);
 
-    if (idx !== (activeLetters.length - 1)) letter.style.gridArea = nextCoords;
+    if (idx !== lastIdx) {
+      if (idx === 0) {
+        const [row, column] = letter.style.gridArea.split(' / ');
+        availableCoords.push({ row, column });
+      }
+      letter.style.gridArea = nextCoords;
+    }
     else letter.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
   });
 };
@@ -152,4 +170,13 @@ function setOrientation(letter, nextCoords) {
   
   const orientation = (currentRow === nextRow) ? 'horizontal' : 'vertical';
   letter.setAttribute('data-orientation', orientation);
+};
+
+function showAvailableCoords() {
+  availableCoords.forEach(coords => {
+    const { row, column } = coords;
+    gameboard.insertAdjacentHTML('beforeend', `
+      <div class="available" style="grid-area: ${row} / ${column}"></div>
+    `);
+  })
 };
