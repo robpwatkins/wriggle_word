@@ -24,9 +24,15 @@ initialLetters
 function initiateBoard() {
   setAvailableCoords();
 
-  const alphabet = Array
-    .from(Array(26))
-    .map((_, idx) => String.fromCharCode(idx + 97));
+  // const alphabet = Array
+  //   .from(Array(26))
+  //   .map((_, idx) => String.fromCharCode(idx + 97));
+  
+  let letterCount = 0;
+
+  while (letterCount <= 7) {
+
+  }
 
   [...alphabet, '_'].forEach(letter => placeLetter(letter));
 
@@ -46,6 +52,10 @@ function setAvailableCoords() {
 
     currentRow++;
   }
+};
+
+function getRandomLetter() {
+  return
 };
 
 function placeLetter(letter) {
