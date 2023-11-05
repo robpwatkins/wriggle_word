@@ -21,10 +21,7 @@ const leadCoords = {
 
 initiateBoard();
 
-const initialLetters = document.querySelectorAll('.letter');
-
-initialLetters
-  .forEach(el => el.addEventListener('click', handleClick));
+window.addEventListener('keyup', handleKeyUp);
 
 function initiateBoard() {
   setAvailableCoords();
@@ -69,9 +66,7 @@ function placeLetter(letter) {
 
   const styleAttr = `style="grid-area: ${row} / ${column};"`;
 
-  gameboard.insertAdjacentHTML('beforeend', `
-    <span class="initial letter${letter === '_' ? ' space' : ''}" ${styleAttr}>${letter}</span>
-  `);
+  gameboard.insertAdjacentHTML('beforeend', `<span class="letter" ${styleAttr}>${letter}</span>`);
 
   boardLetters.push(document.querySelector(`[${styleAttr}]`));
 
