@@ -3,7 +3,8 @@ const currentWord = document.querySelector('.current-word');
 
 const rowCount = 30;
 const columnCount = 15;
-const minimumWordLength = 3;
+const [centerRow, centerColumn] = [rowCount, columnCount]
+  .map(count => Math.ceil(count / 2));
 
 gameboard.style.gridTemplateRows = `repeat(${rowCount}, 1fr)`;
 gameboard.style.gridTemplateColumns = `repeat(${columnCount}, 1fr)`;
@@ -13,16 +14,21 @@ gameboard.style.width = `${columnCount * 20}px`;
 const boardLetters = [];
 const activeLetters = [];
 const availableCoords = [];
-const leadCoords = { row: 1, column: minimumWordLength };
+const leadCoords = {
+  row: centerRow,
+  column: centerColumn
+};
 
 initiateBoard();
 
-window.addEventListener('keyup', handleInitialKeyUp);
+const initialLetters = document.querySelectorAll('.letter');
+
+initialLetters
+  .forEach(el => el.addEventListener('click', handleClick));
 
 function initiateBoard() {
-  addSpaces();
-
   setAvailableCoords();
+  placeLead();
 
   const alphabet = Array
     .from(Array(26))
@@ -32,23 +38,6 @@ function initiateBoard() {
 
   // showAvailableCoords();
 };
-
-function addSpaces() {
-  let i = 1;
-
-  while (i <= minimumWordLength) {
-    const space = document.createElement('span');
-
-    space.innerHTML = '_';
-    space.className = 'letter space active';
-    space.style.gridArea = `1 / ${i}`;
-
-    gameboard.insertAdjacentElement('beforeend', space);
-    activeLetters.push(space);
-
-    i++;
-  }
-}
 
 function setAvailableCoords() {
   let currentRow = 1;
@@ -65,31 +54,38 @@ function setAvailableCoords() {
   }
 };
 
-// function getRandomLetter() {
-//   return
-// };
+function placeLead() {
+  const lead = document.querySelector('.lead');
+  lead.style.gridArea = `${centerRow} / ${centerColumn}`;
+  activeLetters.push(lead);
+
+  const surroundingCoords = getSurroundingCoords(centerRow, centerColumn);
+  surroundingCoords.forEach(coords => removeAvailableCoords(coords));
+}
 
 function placeLetter(letter) {
   const randomIdx = Math.floor(Math.random() * (availableCoords.length - 1));
   const [{ row, column }] = availableCoords.splice(randomIdx, 1);
-  
+
   const styleAttr = `style="grid-area: ${row} / ${column};"`;
 
   gameboard.insertAdjacentHTML('beforeend', `
-    <span class="letter${letter === '_' ? ' space' : ''}" ${styleAttr}>${letter}</span>
+    <span class="initial letter${letter === '_' ? ' space' : ''}" ${styleAttr}>${letter}</span>
   `);
 
   boardLetters.push(document.querySelector(`[${styleAttr}]`));
 
-  [...getSurroundingCoords(row, column)]
-    .forEach(({ row: unavailableRow, column: unavailableColumn }) => {
-      const coordsIdx = availableCoords
-        .findIndex(({ row: availableRow, column: availableColumn }) => (
-          (availableRow === unavailableRow && availableColumn === unavailableColumn)
-        ))
-        
-      if (coordsIdx !== -1) availableCoords.splice(coordsIdx, 1);
-    })
+  const surroundingCoords = getSurroundingCoords(row, column);
+  surroundingCoords.forEach(coords => removeAvailableCoords(coords));
+};
+
+function removeAvailableCoords(coords) {
+  const { row: rowToRemove, column: columnToRemove } = coords;
+
+  const coordsIdx = availableCoords
+    .findIndex(({ row, column }) => ((row === rowToRemove) && (column === columnToRemove)));
+  
+  if (coordsIdx !== -1) availableCoords.splice(coordsIdx, 1);
 };
 
 function getSurroundingCoords(row, column) {
@@ -105,8 +101,23 @@ function getSurroundingCoords(row, column) {
   ];
 };
 
-function handleInitialKeyUp() {
-  window.removeEventListener('keyup', handleInitialKeyUp);
+function handleClick(e) {
+  const { target: letter } = e;
+  letter.classList.add('active');
+  activeLetters.push(letter);
+  currentWord.innerHTML = `<h3>${letter.innerHTML}</h3`;
+
+  const [row, column] = letter.style.gridArea.split(' / ');
+  leadCoords.row = Number(row);
+  leadCoords.column = Number(column);
+
+  initialLetters.forEach(el => {
+    el.classList.remove('initial');
+    el.removeEventListener('click', handleClick);
+  });
+
+  placeLetter(letter.innerHTML);
+
   window.addEventListener('keyup', handleKeyUp);
 };
 
