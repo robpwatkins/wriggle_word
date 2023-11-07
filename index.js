@@ -169,9 +169,9 @@ function addNewLetter(letter, direction) {
 
 function updateLetterPositions() {
   activeLetters.forEach((letter, idx) => {
-    if (letter.classList.contains('space')) {
+    console.log('activeLetters: ', activeLetters);
+    if (letter.classList.contains('space')) transformSpace(letter, idx);
 
-    }
     const lastIdx = activeLetters.length - 1;
 
     const { gridArea: nextCoords } = (idx !== lastIdx) ? activeLetters[idx + 1].style : {};
@@ -206,6 +206,12 @@ function setDirection(letter, nextCoords) {
   }
 
   letter.setAttribute('data-direction', direction);
+};
+
+function transformSpace(letter, idx) {
+  const { direction: currentDirection } = letter.dataset;
+  const { direction: previousDirection } = activateLead[idx + 1].dataset || {};
+  console.log({ currentDirection, previousDirection });
 };
 
 function showAvailableCoords() {
