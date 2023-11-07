@@ -1,3 +1,5 @@
+import { words } from './words.js';
+
 const gameboard = document.querySelector('.gameboard');
 const currentWord = document.querySelector('.current-word');
 
@@ -25,13 +27,8 @@ window.addEventListener('keyup', handleKeyUp);
 
 function initiateBoard() {
   setAvailableCoords();
-  placeLead();
-
-  const alphabet = Array
-    .from(Array(26))
-    .map((_, idx) => String.fromCharCode(idx + 97));
-
-  [...alphabet].forEach(letter => placeLetter(letter));
+  createSegments();
+  placeAlphabet();
 
   // showAvailableCoords();
 };
@@ -51,7 +48,13 @@ function setAvailableCoords() {
   }
 };
 
-function placeLead() {
+function createSegments() {
+  const [word] = words.splice(0);
+
+  word.split('').forEach((_, idx) => gameboard.insertAdjacentHTML('beforeend', `
+    <span class="segment" style="grid-area: ${centerRow} / ${centerColumn - idx}"></span>
+  `));
+  
   const lead = document.querySelector('.lead');
   lead.style.gridArea = `${centerRow} / ${centerColumn}`;
   activeLetters.push(lead);
@@ -59,6 +62,14 @@ function placeLead() {
   const surroundingCoords = getSurroundingCoords(centerRow, centerColumn);
   surroundingCoords.forEach(coords => removeAvailableCoords(coords));
 }
+
+function placeAlphabet() {
+  const alphabet = Array
+    .from(Array(26))
+    .map((_, idx) => String.fromCharCode(idx + 97));
+
+  [...alphabet].forEach(letter => placeLetter(letter));
+};
 
 function placeLetter(letter) {
   const randomIdx = Math.floor(Math.random() * (availableCoords.length - 1));
