@@ -27,8 +27,8 @@ window.addEventListener('keyup', handleKeyUp);
 
 function initiateBoard() {
   setAvailableCoords();
-  createSegments();
   placeAlphabet();
+  activateLead();
 
   // showAvailableCoords();
 };
@@ -48,21 +48,6 @@ function setAvailableCoords() {
   }
 };
 
-function createSegments() {
-  const [word] = words.splice(0);
-
-  word.split('').forEach((_, idx) => gameboard.insertAdjacentHTML('beforeend', `
-    <span class="segment" style="grid-area: ${centerRow} / ${centerColumn - idx}"></span>
-  `));
-  
-  const lead = document.querySelector('.lead');
-  lead.style.gridArea = `${centerRow} / ${centerColumn}`;
-  activeLetters.push(lead);
-
-  const surroundingCoords = getSurroundingCoords(centerRow, centerColumn);
-  surroundingCoords.forEach(coords => removeAvailableCoords(coords));
-}
-
 function placeAlphabet() {
   const alphabet = Array
     .from(Array(26))
@@ -77,7 +62,9 @@ function placeLetter(letter) {
 
   const styleAttr = `style="grid-area: ${row} / ${column};"`;
 
-  gameboard.insertAdjacentHTML('beforeend', `<span class="letter" ${styleAttr}>${letter}</span>`);
+  gameboard.insertAdjacentHTML('beforeend', `
+    <span class="letter ${letter}" ${styleAttr}>${letter}</span>
+  `);
 
   boardLetters.push(document.querySelector(`[${styleAttr}]`));
 
@@ -105,6 +92,20 @@ function getSurroundingCoords(row, column) {
     { row: (row + 1), column: (column - 1) },
     { row, column: (column - 1) }
   ];
+};
+
+function activateLead() {
+  const [word] = words.splice(0);
+  const leadLetter = word.charAt(0);
+  const lead = document.querySelector(`.${leadLetter}`);
+  
+  lead.classList.add('active');
+  activeLetters.push(lead);
+  currentWord.innerHTML = `<h3>${lead.innerHTML}</h3`;
+
+  const [row, column] = lead.style.gridArea.split(' / ');
+  leadCoords.row = Number(row);
+  leadCoords.column = Number(column);
 };
 
 function handleClick(e) {
