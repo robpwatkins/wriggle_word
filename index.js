@@ -53,7 +53,7 @@ function placeAlphabet() {
     .from(Array(26))
     .map((_, idx) => String.fromCharCode(idx + 97));
 
-  [...alphabet].forEach(letter => placeLetter(letter));
+  [/* ...alphabet,  */'_', '_', '_', '_'].forEach(letter => placeLetter(letter));
 };
 
 function placeLetter(letter) {
@@ -63,7 +63,7 @@ function placeLetter(letter) {
   const styleAttr = `style="grid-area: ${row} / ${column};"`;
 
   gameboard.insertAdjacentHTML('beforeend', `
-    <span class="letter ${letter}" ${styleAttr}>${letter}</span>
+    <span class="letter ${letter}${letter === '_' ? ' space' : ''}" ${styleAttr}>${letter}</span>
   `);
 
   boardLetters.push(document.querySelector(`[${styleAttr}]`));
@@ -169,11 +169,14 @@ function addNewLetter(letter, direction) {
 
 function updateLetterPositions() {
   activeLetters.forEach((letter, idx) => {
+    if (letter.classList.contains('space')) {
+
+    }
     const lastIdx = activeLetters.length - 1;
 
     const { gridArea: nextCoords } = (idx !== lastIdx) ? activeLetters[idx + 1].style : {};
 
-    if (letter.innerHTML === '_') setOrientation(letter, nextCoords);
+    if (letter.innerHTML === '_') setDirection(letter, nextCoords);
 
     if (idx !== lastIdx) {
       if (idx === 0) {
@@ -186,14 +189,23 @@ function updateLetterPositions() {
   });
 };
 
-function setOrientation(letter, nextCoords) {
-  const [currentRow] = letter.style.gridArea.split(' / ');
-  const [nextRow] = nextCoords
+function setDirection(letter, nextCoords) {
+  const [currentRow, currentColumn] = letter.style.gridArea.split(' / ');
+  const [nextRow, nextColumn] = nextCoords
     ? nextCoords.split(' / ')
     : Object.values(leadCoords).map(coord => coord.toString());
   
-  const orientation = (currentRow === nextRow) ? 'horizontal' : 'vertical';
-  letter.setAttribute('data-orientation', orientation);
+  let direction;
+
+  if (currentRow === nextRow) {
+    if (currentColumn < nextColumn) direction = 'east';
+    else direction = 'west';
+  } else {
+    if (currentRow < nextRow) direction = 'south';
+    else direction = 'north';
+  }
+
+  letter.setAttribute('data-direction', direction);
 };
 
 function showAvailableCoords() {
