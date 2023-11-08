@@ -46,13 +46,21 @@ body {
   z-index: 1;
 }
 
-/* .space[data-orientation="vertical"] {
+.space[data-direction="north"] {
   transform: rotate(90deg);
 }
 
-.space[data-orientation="horizontal"] {
+.space[data-direction="west"] {
   transform: none;
-} */
+}
+
+.space[data-direction="south"] {
+  transform: rotate(90deg);
+}
+
+.space[data-direction="east"] {
+  transform: none;
+}
 
 .available {
   position: relative;

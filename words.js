@@ -1,5 +1,5 @@
 export const words = [
-  "_good",
+  "good",
   "yes",
   "always",
   "nice",

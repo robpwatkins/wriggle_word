@@ -53,7 +53,7 @@ function placeAlphabet() {
     .from(Array(26))
     .map((_, idx) => String.fromCharCode(idx + 97));
 
-  [/* ...alphabet,  */'_', '_', '_', '_'].forEach(letter => placeLetter(letter));
+  [...alphabet, '_'].forEach(letter => placeLetter(letter));
 };
 
 function placeLetter(letter) {
@@ -169,7 +169,6 @@ function addNewLetter(letter, direction) {
 
 function updateLetterPositions() {
   activeLetters.forEach((letter, idx) => {
-    console.log('activeLetters: ', activeLetters);
     if (letter.classList.contains('space')) transformSpace(letter, idx);
 
     const lastIdx = activeLetters.length - 1;
@@ -190,10 +189,13 @@ function updateLetterPositions() {
 };
 
 function setDirection(letter, nextCoords) {
-  const [currentRow, currentColumn] = letter.style.gridArea.split(' / ');
+  const [currentRow, currentColumn] = letter.style.gridArea
+    .split(' / ')
+    .map(coord => Number(coord));
+    
   const [nextRow, nextColumn] = nextCoords
-    ? nextCoords.split(' / ')
-    : Object.values(leadCoords).map(coord => coord.toString());
+    ? nextCoords.split(' / ').map(coord => Number(coord))
+    : Object.values(leadCoords);
   
   let direction;
 
@@ -210,8 +212,8 @@ function setDirection(letter, nextCoords) {
 
 function transformSpace(letter, idx) {
   const { direction: currentDirection } = letter.dataset;
-  const { direction: previousDirection } = activateLead[idx + 1].dataset || {};
-  console.log({ currentDirection, previousDirection });
+  // const { direction: previousDirection } = activateLead[idx + 1].dataset || {};
+  // console.log({ currentDirection, previousDirection });
 };
 
 function showAvailableCoords() {
