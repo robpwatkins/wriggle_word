@@ -16,6 +16,10 @@ body {
   margin: 50px 0 5px;
 }
 
+.current-word h3 {
+  letter-spacing: .5rem;
+}
+
 .gameboard {
   display: grid;
   align-items: center;

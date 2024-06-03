@@ -1,8 +1,7 @@
 import { words } from './words.js';
 
 const gameboard = document.querySelector('.gameboard');
-const currentWord = document.querySelector('.current-word');
-
+const currentWordEl = document.querySelector('.current-word');
 const rowCount = 30;
 const columnCount = 15;
 const [centerRow, centerColumn] = [rowCount, columnCount]
@@ -21,14 +20,18 @@ const leadCoords = {
   column: centerColumn
 };
 
+let currentWord;
+
 initiateBoard();
 
 window.addEventListener('keyup', handleKeyUp);
 
 function initiateBoard() {
   setAvailableCoords();
-  placeAlphabet();
-  activateLead();
+  activateWrig();
+  placeRemainingLetters();
+  // placeAlphabet();
+  // activateLead();
 
   // showAvailableCoords();
 };
@@ -46,6 +49,10 @@ function setAvailableCoords() {
 
     currentRow++;
   }
+};
+
+function placeRemainingLetters() {
+  currentWord.substring(3).split('').forEach(letter => placeLetter(letter));
 };
 
 function placeAlphabet() {
@@ -94,6 +101,29 @@ function getSurroundingCoords(row, column) {
   ];
 };
 
+function activateWrig() {
+  [currentWord] = words.splice(0, 1);
+  const firstLetters = currentWord.substring(0, 3);
+  
+  let column = centerColumn - 2;
+
+  firstLetters.split('').forEach((letter) => {
+    const styleAttr = `style="grid-area: ${centerRow} / ${column};"`;
+
+    gameboard.insertAdjacentHTML('beforeend', `
+      <span class="letter active ${letter}" ${styleAttr}>${letter}</span>
+    `);
+
+    activeLetters.push(document.querySelector(`[${styleAttr}]`));
+
+    column++;
+  });
+
+  currentWordEl.innerHTML = `
+    <h3>${firstLetters}${currentWord.substring(3).split('').map(_ => '_').join('')}</h3>
+  `;
+};
+
 function activateLead() {
   const [word] = words.splice(0);
   const leadLetter = word.charAt(0);
@@ -101,7 +131,7 @@ function activateLead() {
   
   lead.classList.add('active');
   activeLetters.push(lead);
-  currentWord.innerHTML = `<h3>${lead.innerHTML}</h3`;
+  currentWordEl.innerHTML = `<h3>${lead.innerHTML}</h3`;
 
   const [row, column] = lead.style.gridArea.split(' / ');
   leadCoords.row = Number(row);
@@ -112,7 +142,7 @@ function handleClick(e) {
   const { target: letter } = e;
   letter.classList.add('active');
   activeLetters.push(letter);
-  currentWord.innerHTML = `<h3>${letter.innerHTML}</h3`;
+  currentWordEl.innerHTML = `<h3>${letter.innerHTML}</h3`;
 
   const [row, column] = letter.style.gridArea.split(' / ');
   leadCoords.row = Number(row);
@@ -138,7 +168,7 @@ function handleKeyUp(e) {
   
   if (newLetter) {
     addNewLetter(newLetter, e.code);
-    placeLetter(newLetter.innerHTML);
+    // placeLetter(newLetter.innerHTML);
   }
 
   updateLetterPositions();
@@ -157,15 +187,21 @@ function addNewLetter(letter, direction) {
   updateCoords(direction);
 
   letter.classList.add('active');
+
   activeLetters.push(letter);
 
-  if (letter.innerHTML === '_') currentWord.innerHTML = '<h3>_</h3>';
-  else {
-    const newLetterHeading = `<h3>${letter.innerHTML}</h3>`;
-    if (currentWord.innerHTML.includes('_')) currentWord.innerHTML = newLetterHeading;
-    else currentWord.insertAdjacentHTML('beforeend', newLetterHeading);
-  }
+  currentWordEl.innerHTML = currentWordEl.innerHTML.replace('_', letter.innerHTML);
+
+  if (!currentWordEl.innerHTML.includes('_')) setNewWord();
 };
+
+function setNewWord() {
+  [currentWord] = words.splice(0, 1);
+  
+  currentWordEl.innerHTML = `<h3>${currentWord.split('').map(_ => '_').join('')}</h3>`;
+
+  currentWord.split('').forEach(letter => placeLetter(letter));
+}
 
 function updateLetterPositions() {
   activeLetters.forEach((letter, idx) => {
