@@ -1,37 +1,53 @@
 import { words } from './words.js';
 
 const gameboard = document.querySelector('.gameboard');
-const currentWordEl = document.querySelector('.current-word');
+const currentWordHeading = document.querySelector('.current-word');
 const rowCount = 30;
 const columnCount = 15;
-const [centerRow, centerColumn] = [rowCount, columnCount]
-  .map(count => Math.ceil(count / 2));
+const [centerRow, centerColumn] = [rowCount, columnCount].map(count => Math.ceil(count / 2));
+const directionMap = {
+  ArrowUp: 'north',
+  ArrowRight: 'east',
+  ArrowDown: 'south',
+  ArrowLeft: 'west'
+};
 
 gameboard.style.gridTemplateRows = `repeat(${rowCount}, 1fr)`;
 gameboard.style.gridTemplateColumns = `repeat(${columnCount}, 1fr)`;
 gameboard.style.height = `${rowCount * 20}px`;
 gameboard.style.width = `${columnCount * 20}px`;
 
-const boardLetters = [];
-const activeLetters = [];
-const availableCoords = [];
-const leadCoords = {
-  row: centerRow,
-  column: centerColumn
-};
-
+let boardLetters;
+let activeLetters;
+let availableCoords;
+let leadCoords;
 let currentWord;
+let wordPosition = 1;
+let leadDirection;
+let gameLoop;
 
 initiateBoard();
 
 window.addEventListener('keyup', handleKeyUp);
 
 function initiateBoard() {
+  gameboard.innerHTML = '';
+
+  boardLetters = [];
+
+  activeLetters = [];
+
+  availableCoords = [];
+
+  leadCoords = { row: centerRow, column: centerColumn };
+
+  gameLoop = setInterval(wriggleWord, 250);
+
   setAvailableCoords();
+  
   activateWrig();
-  placeRemainingLetters();
-  // placeAlphabet();
-  // activateLead();
+
+  currentWord.substring(3).split('').forEach(letter => placeLetter(letter));
 
   // showAvailableCoords();
 };
@@ -51,41 +67,46 @@ function setAvailableCoords() {
   }
 };
 
-function placeRemainingLetters() {
-  currentWord.substring(3).split('').forEach(letter => placeLetter(letter));
-};
+function activateWrig() {
+  leadDirection = 'east';
 
-function placeAlphabet() {
-  const alphabet = Array
-    .from(Array(26))
-    .map((_, idx) => String.fromCharCode(idx + 97));
+  [currentWord] = words.splice(0, 1);
+  
+  const firstLetters = currentWord.substring(0, 3);
+  
+  let currentColumn = centerColumn - 2;
 
-  [...alphabet].forEach(letter => placeLetter(letter));
+  firstLetters.split('').forEach((letter) => {
+    const styleAttr = `style="grid-area: ${centerRow} / ${currentColumn};"`;
+
+    gameboard.insertAdjacentHTML('beforeend', `
+      <span class="letter ${letter} active" ${styleAttr} data-position="1">${letter}</span>
+    `);
+
+    activeLetters.push(document.querySelector(`[${styleAttr}]`));
+
+    currentColumn++;
+  });
+
+  currentWordHeading.innerHTML = `
+    <h3>${firstLetters}${currentWord.substring(3).split('').map(_ => '_').join('')}</h3>
+  `;
 };
 
 function placeLetter(letter) {
   const randomIdx = Math.floor(Math.random() * (availableCoords.length - 1));
   const [{ row, column }] = availableCoords.splice(randomIdx, 1);
-
   const styleAttr = `style="grid-area: ${row} / ${column};"`;
 
   gameboard.insertAdjacentHTML('beforeend', `
-    <span class="letter ${letter}${letter === '_' ? ' space' : ''}" ${styleAttr}>${letter}</span>
+    <span class="letter ${letter}" ${styleAttr} data-position="${wordPosition}">${letter}</span>
   `);
 
   boardLetters.push(document.querySelector(`[${styleAttr}]`));
 
   const surroundingCoords = getSurroundingCoords(row, column);
+
   surroundingCoords.forEach(coords => removeAvailableCoords(coords));
-};
-
-function removeAvailableCoords(coords) {
-  const { row: rowToRemove, column: columnToRemove } = coords;
-
-  const coordsIdx = availableCoords
-    .findIndex(({ row, column }) => ((row === rowToRemove) && (column === columnToRemove)));
-  
-  if (coordsIdx !== -1) availableCoords.splice(coordsIdx, 1);
 };
 
 function getSurroundingCoords(row, column) {
@@ -101,74 +122,30 @@ function getSurroundingCoords(row, column) {
   ];
 };
 
-function activateWrig() {
-  [currentWord] = words.splice(0, 1);
-  const firstLetters = currentWord.substring(0, 3);
+function removeAvailableCoords(coords) {
+  const { row: rowToRemove, column: columnToRemove } = coords;
+
+  const coordsIdx = availableCoords
+    .findIndex(({ row, column }) => ((row === rowToRemove) && (column === columnToRemove)));
   
-  let column = centerColumn - 2;
-
-  firstLetters.split('').forEach((letter) => {
-    const styleAttr = `style="grid-area: ${centerRow} / ${column};"`;
-
-    gameboard.insertAdjacentHTML('beforeend', `
-      <span class="letter active ${letter}" ${styleAttr}>${letter}</span>
-    `);
-
-    activeLetters.push(document.querySelector(`[${styleAttr}]`));
-
-    column++;
-  });
-
-  currentWordEl.innerHTML = `
-    <h3>${firstLetters}${currentWord.substring(3).split('').map(_ => '_').join('')}</h3>
-  `;
+  if (coordsIdx !== -1) availableCoords.splice(coordsIdx, 1);
 };
 
-function activateLead() {
-  const [word] = words.splice(0);
-  const leadLetter = word.charAt(0);
-  const lead = document.querySelector(`.${leadLetter}`);
-  
-  lead.classList.add('active');
-  activeLetters.push(lead);
-  currentWordEl.innerHTML = `<h3>${lead.innerHTML}</h3`;
+function wriggleWord() {
+  updateCoords();
 
-  const [row, column] = lead.style.gridArea.split(' / ');
-  leadCoords.row = Number(row);
-  leadCoords.column = Number(column);
-};
-
-function handleClick(e) {
-  const { target: letter } = e;
-  letter.classList.add('active');
-  activeLetters.push(letter);
-  currentWordEl.innerHTML = `<h3>${letter.innerHTML}</h3`;
-
-  const [row, column] = letter.style.gridArea.split(' / ');
-  leadCoords.row = Number(row);
-  leadCoords.column = Number(column);
-
-  initialLetters.forEach(el => {
-    el.classList.remove('initial');
-    el.removeEventListener('click', handleClick);
-  });
-
-  placeLetter(letter.innerHTML);
-
-  window.addEventListener('keyup', handleKeyUp);
-};
-
-function handleKeyUp(e) {
-  if (!['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'].includes(e.code)) return;
-
-  updateCoords(e.code);
+  checkForGameOver();
 
   const newLetter = document
     .querySelector(`[style="grid-area: ${leadCoords.row} / ${leadCoords.column};"]`);
   
   if (newLetter) {
-    addNewLetter(newLetter, e.code);
-    // placeLetter(newLetter.innerHTML);
+    addLetterToWrig(newLetter);
+
+    if (!currentWordHeading.innerHTML.includes('_')) {
+      // finalizeSegment();
+      setNewWord();
+    }
   }
 
   updateLetterPositions();
@@ -176,32 +153,60 @@ function handleKeyUp(e) {
   // showAvailableCoords();
 };
 
-function updateCoords(code) {
-  if (code === 'ArrowUp') leadCoords.row--;
-  else if (code === 'ArrowRight') leadCoords.column++;
-  else if (code === 'ArrowDown') leadCoords.row++;
-  else if (code === 'ArrowLeft') leadCoords.column--;
+function updateCoords() {
+  if (leadDirection === 'north') leadCoords.row--;
+  else if (leadDirection === 'east') leadCoords.column++;
+  else if (leadDirection === 'south') leadCoords.row++;
+  else if (leadDirection === 'west') leadCoords.column--;
 };
 
-function addNewLetter(letter, direction) {
-  updateCoords(direction);
+function checkForGameOver() {
+  if (
+    leadCoords.row > rowCount ||
+    leadCoords.row < 1 ||
+    leadCoords.column > columnCount ||
+    leadCoords.column < 1
+  ) {
+    clearInterval(gameLoop);
+    console.log('Game Over!');
+    // initiateBoard();
+  }
+};
+
+function addLetterToWrig(letter) {
+  updateCoords(leadDirection);
 
   letter.classList.add('active');
 
   activeLetters.push(letter);
 
-  currentWordEl.innerHTML = currentWordEl.innerHTML.replace('_', letter.innerHTML);
+  currentWordHeading.innerHTML = currentWordHeading.innerHTML.replace('_', letter.innerHTML);
+};
 
-  if (!currentWordEl.innerHTML.includes('_')) setNewWord();
+function finalizeSegment() {
+  const spacer = document.createElement('span');
+
+  spacer.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
+  spacer.classList.add('letter', 'spacer', 'active');
+  spacer.innerHTML = '-';
+  
+  gameboard.insertAdjacentElement('beforeend', spacer);
+
+  updateCoords(leadDirection);
+
+  activeLetters.push(spacer);
 };
 
 function setNewWord() {
   [currentWord] = words.splice(0, 1);
   
-  currentWordEl.innerHTML = `<h3>${currentWord.split('').map(_ => '_').join('')}</h3>`;
+  currentWordHeading.innerHTML = `<h3>${currentWord.split('').map(_ => '_').join('')}</h3>`;
 
+  wordPosition++;
+  
   currentWord.split('').forEach(letter => placeLetter(letter));
-}
+
+};
 
 function updateLetterPositions() {
   activeLetters.forEach((letter, idx) => {
@@ -211,7 +216,7 @@ function updateLetterPositions() {
 
     const { gridArea: nextCoords } = (idx !== lastIdx) ? activeLetters[idx + 1].style : {};
 
-    if (letter.innerHTML === '_') setDirection(letter, nextCoords);
+    if (letter.innerHTML === '-') setDirection(letter, nextCoords);
 
     if (idx !== lastIdx) {
       if (idx === 0) {
@@ -233,23 +238,17 @@ function setDirection(letter, nextCoords) {
     ? nextCoords.split(' / ').map(coord => Number(coord))
     : Object.values(leadCoords);
   
-  let direction;
+  let spacerDirection;
 
   if (currentRow === nextRow) {
-    if (currentColumn < nextColumn) direction = 'east';
-    else direction = 'west';
+    if (currentColumn < nextColumn) spacerDirection = 'east';
+    else spacerDirection = 'west';
   } else {
-    if (currentRow < nextRow) direction = 'south';
-    else direction = 'north';
+    if (currentRow < nextRow) spacerDirection = 'south';
+    else spacerDirection = 'north';
   }
 
-  letter.setAttribute('data-direction', direction);
-};
-
-function transformSpace(letter, idx) {
-  const { direction: currentDirection } = letter.dataset;
-  const { direction: previousDirection } = activateLead[idx + 1].dataset || {};
-  console.log({ currentDirection, previousDirection });
+  letter.setAttribute('data-direction', spacerDirection);
 };
 
 function showAvailableCoords() {
@@ -259,4 +258,10 @@ function showAvailableCoords() {
       <div class="available" style="grid-area: ${row} / ${column}"></div>
     `);
   })
+};
+
+function handleKeyUp(e) {
+  if (!['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'].includes(e.code)) return;
+
+  leadDirection = directionMap[e.code];
 };

@@ -50,20 +50,52 @@ body {
   z-index: 1;
 }
 
-.space[data-direction="north"] {
+.letter.active.spacer {
+  font-weight: normal;
+}
+
+.spacer[data-direction="north"] {
   transform: rotate(90deg);
 }
 
-.space[data-direction="west"] {
+.spacer[data-direction="west"] {
   transform: none;
 }
 
-.space[data-direction="south"] {
+.spacer[data-direction="south"] {
   transform: rotate(90deg);
 }
 
-.space[data-direction="east"] {
+.spacer[data-direction="east"] {
   transform: none;
+}
+
+.letter[data-position="1"] {
+  color: firebrick;
+}
+
+.letter[data-position="2"] {
+  color: peru;
+}
+
+.letter[data-position="3"] {
+  color: goldenrod;
+}
+
+.letter[data-position="4"] {
+  color: darkgreen;
+}
+
+.letter[data-position="5"] {
+  color: darkslateblue;
+}
+
+.letter[data-position="6"] {
+  color: indigo;
+}
+
+.letter[data-position="7"] {
+  color: violet;
 }
 
 .available {
