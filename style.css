@@ -46,6 +46,9 @@ body {
 
 .letter.active {
   position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-weight: bold;
   z-index: 1;
 }
@@ -78,27 +81,27 @@ body {
 }
 
 .letter[data-direction="north"]::after {
-  width: 100%;
+  bottom: -1px;
+  width: 75%;
   height: 1px;
 }
 
 .letter[data-direction="east"]::after {
-  top: 0;
+  left: 0;
   width: 1px;
-  height: 100%;
+  height: 75%;
 }
 
 .letter[data-direction="south"]::after {
-  top: 0;
-  width: 100%;
+  top: -1px;
+  width: 75%;
   height: 1px;
 }
 
 .letter[data-direction="west"]::after {
-  top: 0;
   right: 0;
   width: 1px;
-  height: 100%;
+  height: 75%;
 }
 
 .available {
