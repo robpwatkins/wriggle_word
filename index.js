@@ -24,11 +24,13 @@ let leadCoords;
 let currentWord;
 let wordPosition = 1;
 let leadDirection;
+let advance = false;
 let gameLoop;
 
 initiateBoard();
 
 window.addEventListener('keyup', handleKeyUp);
+window.addEventListener('keyup', (e) => e.code === 'Space' ? advance = !advance : null);
 
 function initiateBoard() {
   gameboard.innerHTML = '';
@@ -132,6 +134,8 @@ function removeAvailableCoords(coords) {
 };
 
 function wriggleWord() {
+  if (!advance) return;
+
   updateCoords();
 
   checkForGameOver();
@@ -178,9 +182,13 @@ function addLetterToWrig(letter) {
 
   letter.classList.add('active');
 
+  const currentWordHeadingText = currentWordHeading.innerText;
+
+  if (currentWordHeadingText.charAt(0) === '_') letter.classList.add('first');
+
   activeLetters.push(letter);
 
-  currentWordHeading.innerHTML = currentWordHeading.innerHTML.replace('_', letter.innerHTML);
+  currentWordHeading.innerText = currentWordHeadingText.replace('_', letter.innerHTML);
 };
 
 function finalizeSegment() {
@@ -216,7 +224,7 @@ function updateLetterPositions() {
 
     const { gridArea: nextCoords } = (idx !== lastIdx) ? activeLetters[idx + 1].style : {};
 
-    if (letter.innerHTML === '-') setDirection(letter, nextCoords);
+    if (letter.classList.contains('first')) setDirection(letter, nextCoords);
 
     if (idx !== lastIdx) {
       if (idx === 0) {

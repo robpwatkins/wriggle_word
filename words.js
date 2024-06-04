@@ -1,6 +1,6 @@
 export const words = [
   "easy",
-  "wriggle",
+  "wrig",
   "nice",
   "good",
   "yes",
