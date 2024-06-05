@@ -142,13 +142,20 @@ function wriggleWord() {
 
   updateLeadCoords();
 
-  checkForGameOver();
+  if (
+    leadCoords.row > rowCount ||
+    leadCoords.row < 1 ||
+    leadCoords.column > columnCount ||
+    leadCoords.column < 1
+  ) return gameOver();
 
-  const newLetter = document
+  const collidingLetter = document
     .querySelector(`[style="grid-area: ${leadCoords.row} / ${leadCoords.column};"]`);
   
-  if (newLetter) {
-    addLetterToWrig(newLetter);
+  if (collidingLetter) {
+    if (collidingLetter.classList.contains('active')) return gameOver();
+
+    addLetterToWrig(collidingLetter);
 
     if (!currentWordHeading.innerHTML.includes('_')) setNewWord();
   } else updateLetterPositions();
@@ -159,10 +166,10 @@ function wriggleWord() {
 function updateLeadDirection() {
   if (
     !inputDirection ||
-    leadDirection === 'north' && inputDirection === 'south' ||
-    leadDirection === 'east' && inputDirection === 'west' ||
-    leadDirection === 'south' && inputDirection === 'north' ||
-    leadDirection === 'west' && inputDirection === 'east'
+    (leadDirection === 'north' && inputDirection === 'south') ||
+    (leadDirection === 'east' && inputDirection === 'west') ||
+    (leadDirection === 'south' && inputDirection === 'north') ||
+    (leadDirection === 'west' && inputDirection === 'east')
   ) return;
 
   leadDirection = inputDirection;
@@ -175,17 +182,10 @@ function updateLeadCoords() {
   else if (leadDirection === 'west') leadCoords.column--;
 };
 
-function checkForGameOver() {
-  if (
-    leadCoords.row > rowCount ||
-    leadCoords.row < 1 ||
-    leadCoords.column > columnCount ||
-    leadCoords.column < 1
-  ) {
-    clearInterval(gameLoop);
-    console.log('Game Over!');
-    // initiateBoard();
-  }
+function gameOver() {
+  clearInterval(gameLoop);
+  console.log('Game Over!');
+  // initiateBoard();
 };
 
 function addLetterToWrig(letter) {
