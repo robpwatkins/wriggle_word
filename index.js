@@ -1,7 +1,6 @@
 import { words } from './words.js';
 
 const gameboard = document.querySelector('.gameboard');
-const currentWordHeading = document.querySelector('.current-word');
 const rowCount = 30;
 const columnCount = 15;
 const [centerRow, centerColumn] = [rowCount, columnCount].map(count => Math.ceil(count / 2));
@@ -22,7 +21,7 @@ let activeLetters;
 let availableCoords;
 let leadCoords;
 let currentWord;
-let wordPosition = 1;
+let currentWordHeading;
 let leadDirection;
 let advance = false;
 let gameLoop;
@@ -82,7 +81,7 @@ function activateWrig() {
     const styleAttr = `style="grid-area: ${centerRow} / ${currentColumn};"`;
 
     gameboard.insertAdjacentHTML('beforeend', `
-      <span class="letter ${letter} active" ${styleAttr} data-position="1">${letter}</span>
+      <span class="letter ${letter} active" ${styleAttr}>${letter}</span>
     `);
 
     activeLetters.push(document.querySelector(`[${styleAttr}]`));
@@ -90,9 +89,11 @@ function activateWrig() {
     currentColumn++;
   });
 
-  currentWordHeading.innerHTML = `
+  document.querySelector('.current-word').innerHTML = `
     <h3>${firstLetters}${currentWord.substring(3).split('').map(_ => '_').join('')}</h3>
   `;
+
+  currentWordHeading = document.querySelector('.current-word h3');
 };
 
 function placeLetter(letter) {
@@ -101,7 +102,7 @@ function placeLetter(letter) {
   const styleAttr = `style="grid-area: ${row} / ${column};"`;
 
   gameboard.insertAdjacentHTML('beforeend', `
-    <span class="letter ${letter}" ${styleAttr} data-position="${wordPosition}">${letter}</span>
+    <span class="letter ${letter}" ${styleAttr}">${letter}</span>
   `);
 
   boardLetters.push(document.querySelector(`[${styleAttr}]`));
@@ -136,7 +137,7 @@ function removeAvailableCoords(coords) {
 function wriggleWord() {
   if (!advance) return;
 
-  updateCoords();
+  updateLeadCoords();
 
   checkForGameOver();
 
@@ -146,18 +147,13 @@ function wriggleWord() {
   if (newLetter) {
     addLetterToWrig(newLetter);
 
-    if (!currentWordHeading.innerHTML.includes('_')) {
-      // finalizeSegment();
-      setNewWord();
-    }
-  }
-
-  updateLetterPositions();
+    if (!currentWordHeading.innerHTML.includes('_')) setNewWord();
+  } else updateLetterPositions();
 
   // showAvailableCoords();
 };
 
-function updateCoords() {
+function updateLeadCoords() {
   if (leadDirection === 'north') leadCoords.row--;
   else if (leadDirection === 'east') leadCoords.column++;
   else if (leadDirection === 'south') leadCoords.row++;
@@ -178,8 +174,6 @@ function checkForGameOver() {
 };
 
 function addLetterToWrig(letter) {
-  updateCoords(leadDirection);
-
   letter.classList.add('active');
 
   const currentWordHeadingText = currentWordHeading.innerText;
@@ -200,7 +194,7 @@ function finalizeSegment() {
   
   gameboard.insertAdjacentElement('beforeend', spacer);
 
-  updateCoords(leadDirection);
+  updateLeadCoords();
 
   activeLetters.push(spacer);
 };
@@ -208,20 +202,14 @@ function finalizeSegment() {
 function setNewWord() {
   [currentWord] = words.splice(0, 1);
   
-  currentWordHeading.innerHTML = `<h3>${currentWord.split('').map(_ => '_').join('')}</h3>`;
-
-  wordPosition++;
+  currentWordHeading.innerText = currentWord.split('').map(_ => '_').join('');
   
   currentWord.split('').forEach(letter => placeLetter(letter));
-
 };
 
 function updateLetterPositions() {
   activeLetters.forEach((letter, idx) => {
-    // if (letter.classList.contains('space')) transformSpace(letter, idx);
-
     const lastIdx = activeLetters.length - 1;
-
     const { gridArea: nextCoords } = (idx !== lastIdx) ? activeLetters[idx + 1].style : {};
 
     if (letter.classList.contains('first')) setDirection(letter, nextCoords);
@@ -231,9 +219,9 @@ function updateLetterPositions() {
         const [row, column] = letter.style.gridArea.split(' / ');
         availableCoords.push({ row, column });
       }
+
       letter.style.gridArea = nextCoords;
-    }
-    else letter.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
+    } else letter.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
   });
 };
 
@@ -269,7 +257,14 @@ function showAvailableCoords() {
 };
 
 function handleKeyUp(e) {
-  if (!['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'].includes(e.code)) return;
+  if (
+    !['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'].includes(e.code) ||
+    leadDirection === directionMap[e.code] ||
+    leadDirection === 'north' && e.code === 'ArrowDown' ||
+    leadDirection === 'east' && e.code === 'ArrowLeft' ||
+    leadDirection === 'south' && e.code === 'ArrowUp' ||
+    leadDirection === 'west' && e.code === 'ArrowRight'
+  ) return;
 
   leadDirection = directionMap[e.code];
 };

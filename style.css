@@ -57,22 +57,6 @@ body {
   font-weight: normal;
 }
 
-/* .spacer[data-direction="north"] {
-  transform: rotate(90deg);
-}
-
-.spacer[data-direction="west"] {
-  transform: none;
-}
-
-.spacer[data-direction="south"] {
-  transform: rotate(90deg);
-}
-
-.spacer[data-direction="east"] {
-  transform: none;
-} */
-
 .letter.first::after {
   content: '';
   position: absolute;
