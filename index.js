@@ -22,6 +22,7 @@ let availableCoords;
 let leadCoords;
 let currentWord;
 let currentWordHeading;
+let inputDirection;
 let leadDirection;
 let advance = false;
 let gameLoop;
@@ -137,6 +138,8 @@ function removeAvailableCoords(coords) {
 function wriggleWord() {
   if (!advance) return;
 
+  updateLeadDirection();
+
   updateLeadCoords();
 
   checkForGameOver();
@@ -151,6 +154,18 @@ function wriggleWord() {
   } else updateLetterPositions();
 
   // showAvailableCoords();
+};
+
+function updateLeadDirection() {
+  if (
+    !inputDirection ||
+    leadDirection === 'north' && inputDirection === 'south' ||
+    leadDirection === 'east' && inputDirection === 'west' ||
+    leadDirection === 'south' && inputDirection === 'north' ||
+    leadDirection === 'west' && inputDirection === 'east'
+  ) return;
+
+  leadDirection = inputDirection;
 };
 
 function updateLeadCoords() {
@@ -259,12 +274,8 @@ function showAvailableCoords() {
 function handleKeyUp(e) {
   if (
     !['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'].includes(e.code) ||
-    leadDirection === directionMap[e.code] ||
-    leadDirection === 'north' && e.code === 'ArrowDown' ||
-    leadDirection === 'east' && e.code === 'ArrowLeft' ||
-    leadDirection === 'south' && e.code === 'ArrowUp' ||
-    leadDirection === 'west' && e.code === 'ArrowRight'
+    leadDirection === directionMap[e.code]
   ) return;
 
-  leadDirection = directionMap[e.code];
+  inputDirection = directionMap[e.code];
 };
