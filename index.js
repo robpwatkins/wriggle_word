@@ -21,6 +21,7 @@ let activeLetters;
 let availableCoords;
 let leadCoords;
 let currentWord;
+let currentLetterIdx;
 let currentWordHeading;
 let inputDirection;
 let leadDirection;
@@ -94,6 +95,8 @@ function activateWrig() {
     <h3>${firstLetters}${currentWord.substring(3).split('').map(_ => '_').join('')}</h3>
   `;
 
+  currentLetterIdx = 3;
+
   currentWordHeading = document.querySelector('.current-word h3');
 };
 
@@ -155,9 +158,11 @@ function wriggleWord() {
   if (collidingLetter) {
     if (collidingLetter.classList.contains('active')) return gameOver();
 
-    addLetterToWrig(collidingLetter);
-
-    if (!currentWordHeading.innerHTML.includes('_')) setNewWord();
+    console.log('Colliding with letter:', collidingLetter.innerText);
+    console.log('Current letter:', currentWord.charAt(currentLetterIdx));
+    if (collidingLetter.innerText !== currentWord.charAt(currentLetterIdx)) {
+      handleInvalidLetterCollision(collidingLetter);
+    } else handleValidLetterCollision(collidingLetter);
   } else updateLetterPositions();
 
   // showAvailableCoords();
@@ -188,16 +193,27 @@ function gameOver() {
   // initiateBoard();
 };
 
-function addLetterToWrig(letter) {
+function handleInvalidLetterCollision(letter) {
+  letter.classList.add('active', 'invalid');
+
+  activeLetters.push(letter);
+
+  placeLetter(letter.innerText);
+};
+
+function handleValidLetterCollision(letter) {
   letter.classList.add('active');
 
   const currentWordHeadingText = currentWordHeading.innerText;
 
-  if (currentWordHeadingText.charAt(0) === '_') letter.classList.add('first');
+  if (currentLetterIdx === 0) letter.classList.add('first');
 
   activeLetters.push(letter);
 
-  currentWordHeading.innerText = currentWordHeadingText.replace('_', letter.innerHTML);
+  currentWordHeading.innerText = currentWordHeadingText.replace('_', letter.innerText);
+  
+  if (currentLetterIdx === currentWord.length - 1) setNewWord();
+  else currentLetterIdx++;
 };
 
 function finalizeSegment() {
@@ -220,6 +236,8 @@ function setNewWord() {
   currentWordHeading.innerText = currentWord.split('').map(_ => '_').join('');
   
   currentWord.split('').forEach(letter => placeLetter(letter));
+
+  currentLetterIdx = 0;
 };
 
 function updateLetterPositions() {

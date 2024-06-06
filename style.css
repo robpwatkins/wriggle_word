@@ -53,6 +53,10 @@ body {
   z-index: 1;
 }
 
+.letter.invalid {
+  text-decoration: line-through;
+}
+
 .letter.active.spacer {
   font-weight: normal;
 }
