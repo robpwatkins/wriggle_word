@@ -16,17 +16,20 @@ gameboard.style.gridTemplateColumns = `repeat(${columnCount}, 1fr)`;
 gameboard.style.height = `${rowCount * 20}px`;
 gameboard.style.width = `${columnCount * 20}px`;
 
-let boardLetters;
 let activeLetters;
 let availableCoords;
 let leadCoords;
 let currentWord;
 let currentLetterIdx;
+let currentSegmentIdx = 0;
 let currentWordHeading;
+let newSegment = false;
 let inputDirection;
 let leadDirection;
 let advance = false;
 let gameLoop;
+
+const segments = [];
 
 initiateBoard();
 
@@ -36,9 +39,7 @@ window.addEventListener('keyup', (e) => e.code === 'Space' ? advance = !advance 
 function initiateBoard() {
   gameboard.innerHTML = '';
 
-  boardLetters = [];
-
-  activeLetters = [];
+  // activeLetters = [];
 
   availableCoords = [];
 
@@ -76,6 +77,7 @@ function activateWrig() {
   [currentWord] = words.splice(0, 1);
   
   const firstLetters = currentWord.substring(0, 3);
+  const firstSegment = [];
   
   let currentColumn = centerColumn - 2;
 
@@ -86,10 +88,12 @@ function activateWrig() {
       <span class="letter ${letter} active" ${styleAttr}>${letter}</span>
     `);
 
-    activeLetters.push(document.querySelector(`[${styleAttr}]`));
+    firstSegment.push(document.querySelector(`[${styleAttr}]`));
 
     currentColumn++;
   });
+
+  segments.push(firstSegment);
 
   document.querySelector('.current-word').innerHTML = `
     <h3>${firstLetters}${currentWord.substring(3).split('').map(_ => '_').join('')}</h3>
@@ -103,13 +107,10 @@ function activateWrig() {
 function placeLetter(letter) {
   const randomIdx = Math.floor(Math.random() * (availableCoords.length - 1));
   const [{ row, column }] = availableCoords.splice(randomIdx, 1);
-  const styleAttr = `style="grid-area: ${row} / ${column};"`;
 
   gameboard.insertAdjacentHTML('beforeend', `
-    <span class="letter ${letter}" ${styleAttr}">${letter}</span>
+    <span class="letter ${letter}" style="grid-area: ${row} / ${column};">${letter}</span>
   `);
-
-  boardLetters.push(document.querySelector(`[${styleAttr}]`));
 
   const surroundingCoords = getSurroundingCoords(row, column);
 
@@ -158,8 +159,12 @@ function wriggleWord() {
   if (collidingLetter) {
     if (collidingLetter.classList.contains('active')) return gameOver();
 
-    console.log('Colliding with letter:', collidingLetter.innerText);
-    console.log('Current letter:', currentWord.charAt(currentLetterIdx));
+    if (newSegment) {
+      collidingLetter.classList.add('first');
+      
+      newSegment = false;
+    }
+
     if (collidingLetter.innerText !== currentWord.charAt(currentLetterIdx)) {
       handleInvalidLetterCollision(collidingLetter);
     } else handleValidLetterCollision(collidingLetter);
@@ -196,7 +201,16 @@ function gameOver() {
 function handleInvalidLetterCollision(letter) {
   letter.classList.add('active', 'invalid');
 
-  activeLetters.push(letter);
+  // if (!newSegment) {
+  //   const [currentLead] = activeLetters.slice(-1);
+  
+  //   if (!currentLead.classlist.contains('invalid')) {
+  //     const lastInvalidIdx = activeLetters
+  //       .findLastIndex(letter => letter.classList.contains('invalid'));
+  //   }
+  // }
+
+  segments[currentSegmentIdx].push(letter);
 
   placeLetter(letter.innerText);
 };
@@ -206,9 +220,7 @@ function handleValidLetterCollision(letter) {
 
   const currentWordHeadingText = currentWordHeading.innerText;
 
-  if (currentLetterIdx === 0) letter.classList.add('first');
-
-  activeLetters.push(letter);
+  segments[currentSegmentIdx].push(letter);
 
   currentWordHeading.innerText = currentWordHeadingText.replace('_', letter.innerText);
   
@@ -216,19 +228,19 @@ function handleValidLetterCollision(letter) {
   else currentLetterIdx++;
 };
 
-function finalizeSegment() {
-  const spacer = document.createElement('span');
+// function finalizeSegment() {
+//   const spacer = document.createElement('span');
 
-  spacer.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
-  spacer.classList.add('letter', 'spacer', 'active');
-  spacer.innerHTML = '-';
+//   spacer.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
+//   spacer.classList.add('letter', 'spacer', 'active');
+//   spacer.innerHTML = '-';
   
-  gameboard.insertAdjacentElement('beforeend', spacer);
+//   gameboard.insertAdjacentElement('beforeend', spacer);
 
-  updateLeadCoords();
+//   updateLeadCoords();
 
-  activeLetters.push(spacer);
-};
+//   activeLetters.push(spacer);
+// };
 
 function setNewWord() {
   [currentWord] = words.splice(0, 1);
@@ -238,24 +250,33 @@ function setNewWord() {
   currentWord.split('').forEach(letter => placeLetter(letter));
 
   currentLetterIdx = 0;
+
+  newSegment = true;
 };
 
 function updateLetterPositions() {
-  activeLetters.forEach((letter, idx) => {
-    const lastIdx = activeLetters.length - 1;
-    const { gridArea: nextCoords } = (idx !== lastIdx) ? activeLetters[idx + 1].style : {};
-
-    if (letter.classList.contains('first')) setDirection(letter, nextCoords);
-
-    if (idx !== lastIdx) {
-      if (idx === 0) {
-        const [row, column] = letter.style.gridArea.split(' / ');
-        availableCoords.push({ row, column });
-      }
-
-      letter.style.gridArea = nextCoords;
-    } else letter.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
-  });
+  const lastSegmentIdx = segments.length - 1;
+  const lastLetterIdx = segments[lastSegmentIdx].length - 1;
+  
+  segments.forEach((segment, segmentIdx) => {
+    segment.forEach((letter, letterIdx) => {
+      const { gridArea: nextCoords } = (segmentIdx !== lastSegmentIdx && letterIdx !== lastLetterIdx)
+        ? segment[letterIdx + 1].style
+        : {};
+  
+      if (letter.classList.contains('first')) setDirection(letter, nextCoords);
+  
+      if (idx !== lastIdx) {
+        if (idx === 0) {
+          const [row, column] = letter.style.gridArea.split(' / ');
+          
+          availableCoords.push({ row, column });
+        }
+  
+        letter.style.gridArea = nextCoords;
+      } else letter.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
+    });
+  })
 };
 
 function setDirection(letter, nextCoords) {
