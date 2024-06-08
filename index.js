@@ -23,7 +23,7 @@ let currentWord;
 let currentLetterIdx;
 let currentSegmentIdx = 0;
 let currentWordHeading;
-let newSegment = false;
+let currentSegmentComplete = false;
 let inputDirection;
 let leadDirection;
 let advance = false;
@@ -159,15 +159,19 @@ function wriggleWord() {
   if (collidingLetter) {
     if (collidingLetter.classList.contains('active')) return gameOver();
 
-    if (newSegment) {
+    if (currentSegmentComplete) {
       collidingLetter.classList.add('first');
+
+      segments.push([]);
+
+      currentSegmentIdx++;
       
-      newSegment = false;
+      currentSegmentComplete = false;
     }
 
-    if (collidingLetter.innerText !== currentWord.charAt(currentLetterIdx)) {
-      handleInvalidLetterCollision(collidingLetter);
-    } else handleValidLetterCollision(collidingLetter);
+    if (collidingLetter.innerText === currentWord.charAt(currentLetterIdx)) {
+      handleValidLetterCollision(collidingLetter);
+    } else handleInvalidLetterCollision(collidingLetter);
   } else updateLetterPositions();
 
   // showAvailableCoords();
@@ -198,23 +202,6 @@ function gameOver() {
   // initiateBoard();
 };
 
-function handleInvalidLetterCollision(letter) {
-  letter.classList.add('active', 'invalid');
-
-  // if (!newSegment) {
-  //   const [currentLead] = activeLetters.slice(-1);
-  
-  //   if (!currentLead.classlist.contains('invalid')) {
-  //     const lastInvalidIdx = activeLetters
-  //       .findLastIndex(letter => letter.classList.contains('invalid'));
-  //   }
-  // }
-
-  segments[currentSegmentIdx].push(letter);
-
-  placeLetter(letter.innerText);
-};
-
 function handleValidLetterCollision(letter) {
   letter.classList.add('active');
 
@@ -228,19 +215,29 @@ function handleValidLetterCollision(letter) {
   else currentLetterIdx++;
 };
 
-// function finalizeSegment() {
-//   const spacer = document.createElement('span');
+function handleInvalidLetterCollision(letter) {
+  letter.classList.add('active', 'invalid');
 
-//   spacer.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
-//   spacer.classList.add('letter', 'spacer', 'active');
-//   spacer.innerHTML = '-';
-  
-//   gameboard.insertAdjacentElement('beforeend', spacer);
+  // if (!currentLead.classlist.contains('invalid')) {
+  //   const lastInvalidIdx = currentSegment
+  //     .findLastIndex(letter => letter.classList.contains('invalid'));
+    
+  //   if (lastInvalidIdx === -1) {
+  //     const [
+  //       { gridArea: letterCoords },
+  //       { gridArea: leadCoords }
+  //     ] = [currentLead.style, letter.style];
 
-//   updateLeadCoords();
+  //     letter.style.gridArea = leadCoords;
+      
+  //     currentLead.style.gridArea = letterCoords;
+  //   }
+  // }
 
-//   activeLetters.push(spacer);
-// };
+  segments[currentSegmentIdx].push(letter);
+
+  placeLetter(letter.innerText);
+};
 
 function setNewWord() {
   [currentWord] = words.splice(0, 1);
@@ -249,32 +246,44 @@ function setNewWord() {
   
   currentWord.split('').forEach(letter => placeLetter(letter));
 
+  // segments.push([]);
+
+  // currentSegmentIdx++;
+
   currentLetterIdx = 0;
 
-  newSegment = true;
+  currentSegmentComplete = true;
 };
 
 function updateLetterPositions() {
-  const lastSegmentIdx = segments.length - 1;
+  const lastSegmentIdx = segments[currentSegmentIdx].length
+    ? currentSegmentIdx
+    : currentSegmentIdx - 1;
   const lastLetterIdx = segments[lastSegmentIdx].length - 1;
-  
+
   segments.forEach((segment, segmentIdx) => {
     segment.forEach((letter, letterIdx) => {
-      const { gridArea: nextCoords } = (segmentIdx !== lastSegmentIdx && letterIdx !== lastLetterIdx)
-        ? segment[letterIdx + 1].style
-        : {};
+      let nextLetter;
+
+      if (letterIdx === segment.length - 1) {
+        if (segmentIdx !== lastSegmentIdx) [nextLetter] = segments[segmentIdx + 1];
+      } else nextLetter = segment[letterIdx + 1];
+
+      const { gridArea: nextCoords } = nextLetter ? nextLetter.style : {};
   
       if (letter.classList.contains('first')) setDirection(letter, nextCoords);
   
-      if (idx !== lastIdx) {
-        if (idx === 0) {
+      if (segmentIdx === lastSegmentIdx && letterIdx === lastLetterIdx) {
+        letter.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
+      } else {
+        if (segmentIdx === 0 && letterIdx === 0) {
           const [row, column] = letter.style.gridArea.split(' / ');
           
           availableCoords.push({ row, column });
         }
   
         letter.style.gridArea = nextCoords;
-      } else letter.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
+      }
     });
   })
 };
