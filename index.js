@@ -218,23 +218,30 @@ function handleValidLetterCollision(letter) {
 function handleInvalidLetterCollision(letter) {
   letter.classList.add('active', 'invalid');
 
-  // if (!currentLead.classlist.contains('invalid')) {
-  //   const lastInvalidIdx = currentSegment
-  //     .findLastIndex(letter => letter.classList.contains('invalid'));
+  const currentSegment = segments[currentSegmentIdx];
+  const currentLead = currentSegment[currentSegment.length - 1];
+
+  if (!currentLead.classList.contains('invalid')) {
+    const lastInvalidIdx = currentSegment
+      .findLastIndex(letter => letter.classList.contains('invalid'));
     
-  //   if (lastInvalidIdx === -1) {
-  //     const [
-  //       { gridArea: letterCoords },
-  //       { gridArea: leadCoords }
-  //     ] = [currentLead.style, letter.style];
+    if (lastInvalidIdx === -1) {
+      const [firstLetter] = currentSegment;
+      const { gridArea: firstCoords } = firstLetter.style;
+      const { gridArea: letterCoords } = letter.style;
 
-  //     letter.style.gridArea = leadCoords;
-      
-  //     currentLead.style.gridArea = letterCoords;
-  //   }
-  // }
+      currentLead.style.gridArea = letterCoords;
 
-  segments[currentSegmentIdx].push(letter);
+      letter.style.gridArea = firstCoords;
+      letter.classList.add('first');
+
+      setDirection(letter, currentSegment[1].style.gridArea);
+
+      firstLetter.classList.remove('first');
+
+      currentSegment.unshift(letter);
+    }
+  } else currentSegment.push(letter);
 
   placeLetter(letter.innerText);
 };
@@ -246,10 +253,6 @@ function setNewWord() {
   
   currentWord.split('').forEach(letter => placeLetter(letter));
 
-  // segments.push([]);
-
-  // currentSegmentIdx++;
-
   currentLetterIdx = 0;
 
   currentSegmentComplete = true;
@@ -259,23 +262,18 @@ function updateLetterPositions() {
   const lastSegmentIdx = segments[currentSegmentIdx].length
     ? currentSegmentIdx
     : currentSegmentIdx - 1;
-  const lastLetterIdx = segments[lastSegmentIdx].length - 1;
 
   segments.forEach((segment, segmentIdx) => {
     segment.forEach((letter, letterIdx) => {
-      let nextLetter;
-
-      if (letterIdx === segment.length - 1) {
-        if (segmentIdx !== lastSegmentIdx) [nextLetter] = segments[segmentIdx + 1];
-      } else nextLetter = segment[letterIdx + 1];
-
+      const nextLetter = (letterIdx === segment.length - 1 && segmentIdx !== lastSegmentIdx)
+        ? segments[segmentIdx + 1][0]
+        : segment[letterIdx + 1];
       const { gridArea: nextCoords } = nextLetter ? nextLetter.style : {};
   
       if (letter.classList.contains('first')) setDirection(letter, nextCoords);
   
-      if (segmentIdx === lastSegmentIdx && letterIdx === lastLetterIdx) {
-        letter.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
-      } else {
+      if (!nextLetter) letter.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
+      else {
         if (segmentIdx === 0 && letterIdx === 0) {
           const [row, column] = letter.style.gridArea.split(' / ');
           
@@ -285,7 +283,7 @@ function updateLetterPositions() {
         letter.style.gridArea = nextCoords;
       }
     });
-  })
+  });
 };
 
 function setDirection(letter, nextCoords) {
