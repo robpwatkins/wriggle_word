@@ -220,50 +220,31 @@ function handleInvalidLetterCollision(letter) {
   const lead = leadSegment[leadSegment.length - 1];
   const lastInvalidIdx = leadSegment.slice(0, -1)
     .findLastIndex(letter => letter.classList.contains('invalid'));
-  
+  const targetLetter = lastInvalidIdx === -1 ? leadSegment[0] : leadSegment[lastInvalidIdx];
+  const { gridArea: targetCoords } = targetLetter.style;
+  const { gridArea: leadCoords } = lead.style;
+
+  lead.classList.remove('lead');
+
   if (lastInvalidIdx === -1) {
-    const [firstLetter] = leadSegment;
-    const { gridArea: firstCoords } = firstLetter.style;
-    const { gridArea: leadCoords } = lead.style;
+    targetLetter.classList.remove('first');
 
-    firstLetter.classList.remove('first');
-
-    lead.classList.remove('lead');
     lead.classList.add('first');
 
     leadSegment.unshift(leadSegment.pop());
+  } else leadSegment.splice(lastInvalidIdx + 1, 0, leadSegment.pop());
 
-    leadSegment.forEach((letter, idx) => {
-      if (idx === 0) letter.style.gridArea = firstCoords;
-      else if (idx === leadSegment.length - 1) {
-        letter.classList.add('lead');
-        letter.style.gridArea = leadCoords;
-      } else {
-        const { gridArea: nextCoords } = leadSegment[idx + 1].style;
+  for (let i = (lastInvalidIdx === -1 ? 0 : lastInvalidIdx); i < leadSegment.length; i++) {
+    const letter = leadSegment[i];
 
-        letter.style.gridArea = nextCoords;
-      }
-    });
-  } else {
-    const lastInvalidLetter = leadSegment[lastInvalidIdx];
-    const { gridArea: lastInvalidCoords } = lastInvalidLetter.style;
-    const { gridArea: leadCoords } = lead.style;
+    if (i === lastInvalidIdx) letter.style.gridArea = targetCoords;
+    else if (i === leadSegment.length - 1) {
+      letter.classList.add('lead');
+      letter.style.gridArea = leadCoords;
+    } else {
+      const { gridArea: nextCoords } = leadSegment[i + 1].style;
 
-    lead.classList.remove('lead');
-    lead.classList.add('first');
-
-    leadSegment.splice(lastInvalidIdx, 0, leadSegment.pop());
-
-    for (let i = lastInvalidIdx; i < leadSegment.length; i++) {
-      if (i === lastInvalidIdx) letter.style.gridArea = lastInvalidCoords;
-      else if (i === leadSegment.length - 1) {
-        letter.classList.add('lead');
-        letter.style.gridArea = leadCoords;
-      } else {
-        const { gridArea: nextCoords } = leadSegment[i + 1].style;
-
-        letter.style.gridArea = nextCoords;
-      }
+      letter.style.gridArea = nextCoords;
     }
   }
 
