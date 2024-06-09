@@ -16,14 +16,13 @@ gameboard.style.gridTemplateColumns = `repeat(${columnCount}, 1fr)`;
 gameboard.style.height = `${rowCount * 20}px`;
 gameboard.style.width = `${columnCount * 20}px`;
 
-let activeLetters;
 let availableCoords;
 let leadCoords;
 let currentWord;
-let currentLetterIdx;
-let currentSegmentIdx = 0;
 let currentWordHeading;
 let newWord = false;
+let currentLetterIdx;
+let currentSegmentIdx = 0;
 let inputDirection;
 let leadDirection;
 let advance = false;
@@ -39,19 +38,17 @@ window.addEventListener('keyup', (e) => e.code === 'Space' ? advance = !advance 
 function initiateBoard() {
   gameboard.innerHTML = '';
 
-  // activeLetters = [];
-
   availableCoords = [];
 
   leadCoords = { row: centerRow, column: centerColumn };
-
-  gameLoop = setInterval(wriggleWord, 250);
 
   setAvailableCoords();
   
   activateWrig();
 
   currentWord.substring(3).split('').forEach(letter => placeLetter(letter));
+
+  gameLoop = setInterval(wriggleWord, 175);
 
   // showAvailableCoords();
 };
@@ -90,6 +87,8 @@ function activateWrig() {
 
     firstSegment.push(document.querySelector(`[${styleAttr}]`));
 
+    removeAvailableCoords({ row: centerRow, column: currentColumn });
+
     currentColumn++;
   });
 
@@ -106,15 +105,13 @@ function activateWrig() {
 
 function placeLetter(letter) {
   const randomIdx = Math.floor(Math.random() * (availableCoords.length - 1));
-  const [{ row, column }] = availableCoords.splice(randomIdx, 1);
+  const { row, column } = availableCoords[randomIdx];
 
   gameboard.insertAdjacentHTML('beforeend', `
     <span class="letter ${letter}" style="grid-area: ${row} / ${column};">${letter}</span>
   `);
 
-  const surroundingCoords = getSurroundingCoords(row, column);
-
-  surroundingCoords.forEach(coords => removeAvailableCoords(coords));
+  removeAvailableCoords({ row, column });
 };
 
 function getSurroundingCoords(row, column) {
@@ -196,6 +193,10 @@ function updateLeadCoords() {
   else if (leadDirection === 'east') leadCoords.column++;
   else if (leadDirection === 'south') leadCoords.row++;
   else if (leadDirection === 'west') leadCoords.column--;
+  
+  const { row: leadRow, column: leadColumn } = leadCoords;
+
+  removeAvailableCoords({ row: leadRow, column: leadColumn });
 };
 
 function gameOver() {
@@ -217,34 +218,37 @@ function handleInvalidLetterCollision(letter) {
   letter.classList.add('active', 'invalid');
 
   const leadSegment = segments[currentSegmentIdx];
-  const lead = leadSegment[leadSegment.length - 1];
-  const lastInvalidIdx = leadSegment.slice(0, -1)
-    .findLastIndex(letter => letter.classList.contains('invalid'));
-  const targetLetter = lastInvalidIdx === -1 ? leadSegment[0] : leadSegment[lastInvalidIdx];
-  const { gridArea: targetCoords } = targetLetter.style;
-  const { gridArea: leadCoords } = lead.style;
 
-  lead.classList.remove('lead');
-
-  if (lastInvalidIdx === -1) {
-    targetLetter.classList.remove('first');
-
-    lead.classList.add('first');
-
-    leadSegment.unshift(leadSegment.pop());
-  } else leadSegment.splice(lastInvalidIdx + 1, 0, leadSegment.pop());
-
-  for (let i = (lastInvalidIdx === -1 ? 0 : lastInvalidIdx); i < leadSegment.length; i++) {
-    const letter = leadSegment[i];
-
-    if (i === lastInvalidIdx) letter.style.gridArea = targetCoords;
-    else if (i === leadSegment.length - 1) {
-      letter.classList.add('lead');
-      letter.style.gridArea = leadCoords;
-    } else {
-      const { gridArea: nextCoords } = leadSegment[i + 1].style;
-
-      letter.style.gridArea = nextCoords;
+  if (leadSegment.length > 1) {
+    const lead = leadSegment.pop();
+    const lastInvalidIdx = leadSegment
+      .findLastIndex(letter => letter.classList.contains('invalid'));
+    const targetLetter = lastInvalidIdx === -1 ? leadSegment[0] : leadSegment[lastInvalidIdx];
+    const { gridArea: targetCoords } = targetLetter.style;
+    const { gridArea: leadCoords } = lead.style;
+  
+    lead.classList.remove('lead');
+  
+    if (lastInvalidIdx === -1) {
+      targetLetter.classList.remove('first');
+  
+      lead.classList.add('first');
+  
+      leadSegment.unshift(lead);
+    } else leadSegment.splice(lastInvalidIdx + 1, 0, lead);
+  
+    for (let i = (lastInvalidIdx === -1 ? 0 : lastInvalidIdx); i < leadSegment.length; i++) {
+      const letter = leadSegment[i];
+  
+      if (i === lastInvalidIdx) letter.style.gridArea = targetCoords;
+      else if (i === leadSegment.length - 1) {
+        letter.classList.add('lead');
+        letter.style.gridArea = leadCoords;
+      } else {
+        const { gridArea: nextCoords } = leadSegment[i + 1].style;
+  
+        letter.style.gridArea = nextCoords;
+      }
     }
   }
 
@@ -278,9 +282,10 @@ function updateLetterPositions() {
       if (!nextLetter) letter.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
       else {
         if (segmentIdx === 0 && letterIdx === 0) {
-          const [row, column] = letter.style.gridArea.split(' / ');
+          const [rowToAdd, columnToAdd] = letter.style.gridArea.split(' / ')
+            .map(coord => Number(coord));
           
-          availableCoords.push({ row, column });
+          availableCoords.push({ row: rowToAdd, column: columnToAdd });
         }
   
         letter.style.gridArea = nextCoords;
