@@ -71,7 +71,9 @@ function setAvailableCoords() {
 function activateWrig() {
   leadDirection = 'east';
 
-  [currentWord] = words.splice(0, 1);
+  const fourLetterWords = words.filter(word => word.length === 4);
+
+  [currentWord] = fourLetterWords.splice(getRandomIdx(fourLetterWords.length - 1), 1);
   
   const firstLetters = currentWord.substring(0, 3);
   const firstSegment = [];
@@ -103,8 +105,12 @@ function activateWrig() {
   currentWordHeading = document.querySelector('.current-word h3');
 };
 
+function getRandomIdx(max) {
+  return Math.floor(Math.random() * max);
+};
+
 function placeLetter(letter) {
-  const randomIdx = Math.floor(Math.random() * (availableCoords.length - 1));
+  const randomIdx = getRandomIdx(availableCoords.length - 1);
   const { row, column } = availableCoords[randomIdx];
 
   gameboard.insertAdjacentHTML('beforeend', `
@@ -256,7 +262,7 @@ function handleInvalidLetterCollision(letter) {
 };
 
 function setNewWord() {
-  [currentWord] = words.splice(0, 1);
+  [currentWord] = words.splice(getRandomIdx(words.length - 1), 1);
   
   currentWordHeading.innerText = currentWord.split('').map(_ => '_').join('');
   

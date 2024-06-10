@@ -55,7 +55,8 @@ body {
 
 .letter.invalid {
   text-decoration: line-through;
-  opacity: .4;
+  font-weight: normal;
+  opacity: .8;
 }
 
 .letter.active.spacer {

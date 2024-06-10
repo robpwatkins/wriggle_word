@@ -415,4 +415,4 @@ export const words = [
   "inner",
   "climbed",
   "minor"
-];
+].filter(word => word.length < 6);
