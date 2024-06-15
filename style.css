@@ -73,24 +73,24 @@ body {
 .letter[data-direction="north"]::after {
   bottom: -1px;
   width: 75%;
-  height: 1px;
+  height: 1.5px;
 }
 
 .letter[data-direction="east"]::after {
   left: 0;
-  width: 1px;
+  width: 1.5px;
   height: 75%;
 }
 
 .letter[data-direction="south"]::after {
-  top: -1px;
+  top: 0px;
   width: 75%;
-  height: 1px;
+  height: 1.5px;
 }
 
 .letter[data-direction="west"]::after {
   right: 0;
-  width: 1px;
+  width: 1.5px;
   height: 75%;
 }
 

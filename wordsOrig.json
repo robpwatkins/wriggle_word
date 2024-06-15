@@ -1,11 +1,8 @@
-export const words = [
-  "i.e.",
+[
   "formed",
   "career",
   "extend",
-  "ride",
   "domain",
-  "core",
   "tens",
   "master",
   "affair",
@@ -290,7 +287,6 @@ export const words = [
   "aide",
   "random",
   "fine",
-  "a.m.",
   "diary",
   "things",
   "babies",
@@ -439,7 +435,6 @@ export const words = [
   "chips",
   "sweep",
   "unique",
-  "p.m.",
   "scared",
   "forty",
   "cups",
@@ -1152,4 +1147,4 @@ export const words = [
   "nation",
   "leads",
   "hung"
-].filter(word => word.length < 6);
+]
