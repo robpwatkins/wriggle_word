@@ -1,5 +1,9 @@
-import { words } from './words.js';
+import { permutations } from './permutations.js';
+// import { permutations } from './permutationsDev.js';
 
+const words = permutations
+  .filter(permArr => permArr[0].word.length === 5)
+  .map(permArr => permArr.filter(perm => perm.corpus_count > 4500).map(perm => perm.word));
 const gameboard = document.querySelector('.gameboard');
 const rowCount = 30;
 const columnCount = 15;
@@ -18,7 +22,9 @@ gameboard.style.width = `${columnCount * 20}px`;
 
 let availableCoords;
 let leadCoords;
-let currentWord;
+let currentWordsIdx;
+let currentWords;
+let currentLetters;
 let currentWordHeading;
 let newWord = false;
 let currentLetterIdx;
@@ -46,7 +52,7 @@ function initiateBoard() {
   
   activateWrig();
 
-  currentWord.substring(3).split('').forEach(letter => placeLetter(letter));
+  currentLetters.substring(3).split('').forEach(letter => placeLetter(letter));
 
   gameLoop = setInterval(wriggleWord, 175);
 
@@ -71,11 +77,13 @@ function setAvailableCoords() {
 function activateWrig() {
   leadDirection = 'east';
 
-  const fourLetterWords = words.filter(word => word.length === 4);
+  currentWordsIdx = getRandomIdx(words.length);
 
-  [currentWord] = fourLetterWords.splice(getRandomIdx(fourLetterWords.length - 1), 1);
-  
-  const firstLetters = currentWord.substring(0, 3);
+  currentWords = words[currentWordsIdx];
+
+  [currentLetters] = currentWords;
+
+  const firstLetters = currentLetters.substring(0, 3);
   const firstSegment = [];
   
   let currentColumn = centerColumn - 2;
@@ -96,13 +104,13 @@ function activateWrig() {
 
   segments.push(firstSegment);
 
-  document.querySelector('.current-word').innerHTML = `
-    <h3>${firstLetters}${currentWord.substring(3).split('').map(_ => '_').join('')}</h3>
+  document.querySelector('.metadata').innerHTML = `
+    <h3>${firstLetters}${currentLetters.substring(3).split('').map(_ => '_').join('')}</h3>
   `;
 
   currentLetterIdx = 3;
 
-  currentWordHeading = document.querySelector('.current-word h3');
+  currentWordHeading = document.querySelector('.metadata h3');
 };
 
 function getRandomIdx(max) {
@@ -149,12 +157,10 @@ function wriggleWord() {
 
   updateLeadCoords();
 
-  if (
-    leadCoords.row > rowCount ||
-    leadCoords.row < 1 ||
-    leadCoords.column > columnCount ||
-    leadCoords.column < 1
-  ) return gameOver();
+  if (leadCoords.row > rowCount) leadCoords.row = 1;
+  else if (leadCoords.row < 1) leadCoords.row = rowCount;
+  else if (leadCoords.column > columnCount) leadCoords.column = 1;
+  else if (leadCoords.column < 1) leadCoords.column = columnCount;
 
   const collidingLetter = document
     .querySelector(`[style="grid-area: ${leadCoords.row} / ${leadCoords.column};"]`);
@@ -174,7 +180,12 @@ function wriggleWord() {
       newWord = false;
     } else segments[currentSegmentIdx].push(collidingLetter);
 
-    if (collidingLetter.innerText === currentWord.charAt(currentLetterIdx)) {
+    const filteredPermutations = currentWords
+      .filter(perm => perm[currentLetterIdx] === collidingLetter.innerText);
+
+      if (filteredPermutations.length) {
+      currentWords = filteredPermutations;
+
       handleValidLetterCollision(collidingLetter);
     } else handleInvalidLetterCollision(collidingLetter);
   } else updateLetterPositions();
@@ -216,8 +227,16 @@ function handleValidLetterCollision(letter) {
 
   currentWordHeading.innerText = currentWordHeadingText.replace('_', letter.innerText);
   
-  if (currentLetterIdx === currentWord.length - 1) setNewWord();
-  else currentLetterIdx++;
+  if (currentLetterIdx === currentLetters.length - 1) {
+    const origWords = words[currentWordsIdx];
+    const completedWord = segments[currentSegmentIdx]
+      .filter(el => !el.classList.contains('invalid'))
+      .map(el => el.innerText).join('');
+    
+    words[currentWordsIdx] = origWords.filter(word => word !== completedWord);
+
+    setNewWords();
+  } else currentLetterIdx++;
 };
 
 function handleInvalidLetterCollision(letter) {
@@ -261,12 +280,16 @@ function handleInvalidLetterCollision(letter) {
   placeLetter(letter.innerText);
 };
 
-function setNewWord() {
-  [currentWord] = words.splice(getRandomIdx(words.length - 1), 1);
+function setNewWords() {
+  currentWordsIdx = getRandomIdx(words.length);
+
+  currentWords = words[currentWordsIdx];
+
+  [currentLetters] = currentWords;
   
-  currentWordHeading.innerText = currentWord.split('').map(_ => '_').join('');
+  currentWordHeading.innerText = currentLetters.split('').map(_ => '_').join('');
   
-  currentWord.split('').forEach(letter => placeLetter(letter));
+  currentLetters.split('').forEach(letter => placeLetter(letter));
 
   currentLetterIdx = 0;
 
