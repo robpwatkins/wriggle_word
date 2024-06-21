@@ -3,7 +3,7 @@ const currentWords = require('./words1.json');
 
 const fetchWords = async () => {
   const minLength = 4;
-  const maxLength = 6;
+  const maxLength = 8;
   const excludePartsOfSpeech = [
     'abbreviation',
     'affix',
@@ -18,7 +18,7 @@ const fetchWords = async () => {
     'suffix'
   ];
   const response = await (
-    await fetch(`https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=true&excludePartOfSpeech=${excludePartsOfSpeech.join('')}&minCorpusCount=99999&maxCorpusCount=-1&minDictionaryCount=1&maxDictionaryCount=-1&minLength=${minLength}&maxLength=${maxLength}&limit=500&api_key=${process.env.WORDNIK_API_KEY}`)
+    await fetch(`https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=true&excludePartOfSpeech=${excludePartsOfSpeech.join(',')}&minCorpusCount=99999&maxCorpusCount=-1&minDictionaryCount=1&maxDictionaryCount=-1&minLength=${minLength}&maxLength=${maxLength}&limit=500&api_key=${process.env.WORDNIK_API_KEY}`)
   ).json();
   const words = response
     .map(wordObj => wordObj.word)
@@ -27,11 +27,14 @@ const fetchWords = async () => {
       !word.includes("'")
     ));
   console.log('currentWords: ', currentWords.length);
-  console.log('words: ', words.length);
-  const uniqueWords1 = currentWords.filter((word) => words.indexOf(word) === -1);
-  const uniqueWords2 = words.filter((word) => currentWords.indexOf(word) === -1);
 
-  writeFileSync('words1.json', JSON.stringify(uniqueWords1.concat(uniqueWords2), null, 2));
+  if (words.length) {
+    const uniqueWords1 = currentWords.filter((word) => words.indexOf(word) === -1);
+    const uniqueWords2 = words.filter((word) => currentWords.indexOf(word) === -1);
+    console.log('words: ', uniqueWords1.concat(uniqueWords2).length);
+    
+    writeFileSync('words1.json', JSON.stringify(uniqueWords1.concat(uniqueWords2), null, 2));
+  } else console.log('no new words');
 };
 
 fetchWords();

@@ -1,18 +1,22 @@
 const { writeFileSync } = require('fs');
-const words = require('./words.json');
-const fiveLettersMax = words.filter(word => word.length < 6);
+const words = require('./words1.json');
+const scrabbleWords = require('./scrabbleWords.json');
 
 (async () => {
   let wordCount = 1;
 
-  for await (const word of fiveLettersMax) {
+  for await (const word of words) {
     console.log(`----------------------------${wordCount}: ${word}----------------------------`);
-
-    const permutations = permute(word.split(''));
+    
     const permutationsData = [];
+    const permutations = permute(word.split(''))
+      .filter((perm, idx, arr) => arr.indexOf(perm) === idx);
+
     let permCount = 1;
     
     for await (const permutation of permutations) {
+      if (!scrabbleWords.includes(permutation)) continue;
+      
       console.log(`${permCount}: ${permutation}`);
 
       const response = await (
@@ -20,8 +24,6 @@ const fiveLettersMax = words.filter(word => word.length < 6);
       ).json();
 
       if (response.totalCount) {
-        console.log(`adding ${permutation}`);
-
         permutationsData.push({
           word: permutation,
           corpus_count: response.totalCount
@@ -33,13 +35,14 @@ const fiveLettersMax = words.filter(word => word.length < 6);
       await timeout(4500);
 
       permCount++;
+
     }
 
-    const runningPermutations = require('./permutations.json');
+    const runningPermutations = require('./permutations1.json');
 
     runningPermutations.push(permutationsData);
 
-    writeFileSync('permutations.json', JSON.stringify(runningPermutations, null, 2));
+    writeFileSync('permutations1.json', JSON.stringify(runningPermutations, null, 2));
 
     wordCount++;
   }
