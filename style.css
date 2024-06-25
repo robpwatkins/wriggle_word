@@ -12,15 +12,15 @@ body {
 section {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  width: fit-content;
+  margin: 0 auto;
 }
 
 .successes {
   margin: 3rem 0 .5rem;
 }
 
-.successes,
-.attempts {
+.successes {
   text-align: center;
   letter-spacing: .5rem;
 }
@@ -31,11 +31,6 @@ section {
   border: 2px solid black;
   background-color: #fff;
   border-radius: 2px;
-}
-
-.attempts {
-  margin-top: .5rem;
-  font-weight: normal;
 }
 
 .segment {
@@ -58,86 +53,78 @@ section {
   z-index: 1;
 }
 
-.letter.invalid {
-  text-decoration: line-through;
-  font-weight: normal;
-  opacity: .8;
-}
-
-.letter.active.spacer {
-  font-weight: normal;
-}
-
-.letter.segment-rear::after,
-.letter.guess-group-rear::after {
+.letter.segment-rear::after {
   content: '';
   position: absolute;
   display: block;
   background-color: black;
 }
 
-.letter[data-direction="north"]::after,
-.letter.guess-group-rear[data-direction="north"]::after {
-  bottom: -1px;
-}
-
-.letter[data-direction="east"]::after,
-.letter.guess-group-rear[data-direction="east"]::after {
-  left: 0;
-}
-
-.letter[data-direction="south"]::after,
-.letter.guess-group-rear[data-direction="south"]::after {
-  top: 0px;
-}
-
-.letter[data-direction="west"]::after,
-.letter.guess-group-rear[data-direction="west"]::after {
-  right: 0;
-}
-
 .letter[data-direction="north"]::after {
+  bottom: -1px;
   width: 75%;
   height: 1.5px;
 }
 
 .letter[data-direction="east"]::after {
+  left: 0;
   width: 1.5px;
   height: 75%;
 }
 
 .letter[data-direction="south"]::after {
+  top: 0px;
   width: 75%;
   height: 1.5px;
 }
 
 .letter[data-direction="west"]::after {
+  right: 0;
   width: 1.5px;
   height: 75%;
 }
 
-.letter.guess-group-rear[data-direction="north"]::after {
-  width: 75%;
-  height: 1.5px;
+.letter.active.invalid {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  font-weight: normal;
+  opacity: .8;
 }
 
-.letter.guess-group-rear[data-direction="east"]::after {
-  width: 1.5px;
-  height: 75%;
+.letter.invalid:not(.active) {
+  opacity: .4;
 }
 
-.letter.guess-group-rear[data-direction="south"]::after {
-  width: 75%;
-  height: 1.5px;
+/* .letter.guess-group-rear::before {
+  position: absolute;
+  display: block;
+  content: '';
+  left: 0;
+  width: .5px;
+  height: 60%;
+  background-color: black;
 }
 
-.letter.guess-group-rear[data-direction="west"]::after {
-  width: 1.5px;
-  height: 75%;
+.letter.guess-group-rear[data-direction="north"]::before {
+  bottom: -1px;
+  width: 67%;
+  height: .5px;
 }
 
-.available {
-  position: relative;
-  height: 100%;
-  background-color: mistyrose;
+.letter.guess-group-rear[data-direction="east"]::before {
+  left: 0;
+  width: .5px;
+  height: 67%;
 }
+
+.letter.guess-group-rear[data-direction="south"]::before {
+  top: 0px;
+  width: 67%;
+  height: .5px;
+}
+
+.letter.guess-group-rear[data-direction="west"]::before {
+  right: 0;
+  width: .5px;
+  height: 67%;
+} */

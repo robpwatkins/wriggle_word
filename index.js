@@ -2,7 +2,6 @@ import { words } from './words.js';
 
 const gameboard = document.querySelector('.gameboard');
 const successesHeading = document.querySelector('.successes');
-const attemptsHeading = document.querySelector('.attempts');
 const rowCount = 30;
 const columnCount = 15;
 const [centerRow, centerColumn] = [rowCount, columnCount].map(count => Math.ceil(count / 2));
@@ -25,7 +24,6 @@ let wordLengthIdx = 0;
 let availableCoords;
 let leadCoords;
 let currentWord;
-let invalidLettersP;
 let newWord = false;
 let currentLetterIdx;
 let currentSegmentIdx = 0;
@@ -47,7 +45,7 @@ function initiateBoard() {
   leadCoords = { row: centerRow, column: centerColumn };
 
   setAvailableCoords();
-  
+
   activateWrig();
 
   currentWord.substring(3).split('').forEach(letter => placeLetter(letter));
@@ -57,10 +55,10 @@ function initiateBoard() {
 
 function setAvailableCoords() {
   let currentRow = 1;
-  
+
   while (currentRow <= rowCount) {
     let currentColumn = 1;
-  
+
     while (currentColumn <= columnCount) {
       availableCoords.push({ row: currentRow, column: currentColumn });
       currentColumn++;
@@ -79,7 +77,7 @@ function activateWrig() {
 
   const firstLetters = currentWord.substring(0, 3);
   const firstSegment = [];
-  
+
   let currentColumn = centerColumn - 2;
 
   firstLetters.split('').forEach((letter, idx) => {
@@ -109,12 +107,12 @@ function getRandomIdx(max) {
   return Math.floor(Math.random() * max);
 };
 
-function placeLetter(letter) {
+function placeLetter(letter, invalid) {
   const randomIdx = getRandomIdx(availableCoords.length - 1);
   const { row, column } = availableCoords[randomIdx];
 
   gameboard.insertAdjacentHTML('beforeend', `
-    <span class="letter ${letter}" style="grid-area: ${row} / ${column};">${letter}</span>
+    <span class="letter ${letter}${invalid ? ' invalid' : ''}" style="grid-area: ${row} / ${column};">${letter}</span>
   `);
 
   removeAvailableCoords({ row, column });
@@ -125,7 +123,7 @@ function removeAvailableCoords(coords) {
 
   const coordsIdx = availableCoords
     .findIndex(({ row, column }) => ((row === rowToRemove) && (column === columnToRemove)));
-  
+
   if (coordsIdx !== -1) availableCoords.splice(coordsIdx, 1);
 };
 
@@ -143,9 +141,10 @@ function wriggleWord() {
 
   const collidingLetter = document
     .querySelector(`[style="grid-area: ${leadCoords.row} / ${leadCoords.column};"]`);
-  
+
   if (collidingLetter) {
     if (collidingLetter.classList.contains('active')) return gameOver();
+    else if (collidingLetter.classList.contains('invalid')) return updateLetterPositions();
 
     collidingLetter.classList.add('active', 'lead');
     collidingLetter.previousElementSibling.classList.remove('lead');
@@ -156,7 +155,7 @@ function wriggleWord() {
       segments.push([collidingLetter]);
 
       currentSegmentIdx++;
-      
+
       newWord = false;
     } else segments[currentSegmentIdx].push(collidingLetter);
 
@@ -183,7 +182,7 @@ function updateLeadCoords() {
   else if (leadDirection === 'east') leadCoords.column++;
   else if (leadDirection === 'south') leadCoords.row++;
   else if (leadDirection === 'west') leadCoords.column--;
-  
+
   const { row: leadRow, column: leadColumn } = leadCoords;
 
   removeAvailableCoords({ row: leadRow, column: leadColumn });
@@ -197,52 +196,92 @@ function gameOver() {
 
 function handleValidLetterCollision(letter) {
   successesHeading.innerText = successesHeading.innerText.replace('_', letter.innerText);
-  
-  if (currentLetterIdx === currentWord.length - 1) setNewWord();
-  else currentLetterIdx++;
-};
 
-function handleInvalidLetterCollision(letter) {
-  attemptsHeading.innerText = attemptsHeading.innerText + letter.innerText;
+  if (currentLetterIdx !== 0) {
+    const leadSegment = segments[currentSegmentIdx];
+    const invalidLetters = leadSegment.filter(letter => (
+      letter.classList.contains('invalid') &&
+      letter.dataset.idx === currentLetterIdx.toString()
+    ));
 
-  letter.classList.add('active', 'invalid');
+    if (invalidLetters.length) {
+      const firstValidIdx = leadSegment
+        .findIndex(letter => !letter.classList.contains('invalid'));
+      const coords = leadSegment.slice(firstValidIdx).map(letter => letter.style.gridArea);
+      const validLetters = leadSegment.splice(
+        firstValidIdx,
+        (leadSegment.filter(letter => !letter.classList.contains('invalid'))).length - 1
+      );
 
-  const leadSegment = segments[currentSegmentIdx];
+      validLetters.forEach(letter => leadSegment.splice(leadSegment.length - 1, 0, letter));
 
-  if (leadSegment.length > 1) {
-    const lead = leadSegment.pop();
-    const lastInvalidIdx = leadSegment
-      .findLastIndex(letter => letter.classList.contains('invalid'));
-    const targetLetter = lastInvalidIdx === -1 ? leadSegment[0] : leadSegment[lastInvalidIdx];
-    const { gridArea: targetCoords } = targetLetter.style;
-    const { gridArea: leadCoords } = lead.style;
-  
-    lead.classList.remove('lead');
-  
-    if (lastInvalidIdx === -1) {
-      targetLetter.classList.remove('segment-rear');
-  
-      lead.classList.add('segment-rear');
-  
-      leadSegment.unshift(lead);
-    } else leadSegment.splice(lastInvalidIdx + 1, 0, lead);
-  
-    for (let i = (lastInvalidIdx === -1 ? 0 : lastInvalidIdx); i < leadSegment.length; i++) {
-      const letter = leadSegment[i];
-  
-      if (i === lastInvalidIdx) letter.style.gridArea = targetCoords;
-      else if (i === leadSegment.length - 1) {
-        letter.classList.add('lead');
-        letter.style.gridArea = leadCoords;
-      } else {
-        const { gridArea: nextCoords } = leadSegment[i + 1].style;
-  
-        letter.style.gridArea = nextCoords;
-      }
+      coords.forEach((coord, idx) => leadSegment[idx + firstValidIdx].style.gridArea = coord);
     }
   }
 
-  placeLetter(letter.innerText);
+  if (currentLetterIdx === currentWord.length - 1) setNewWord();
+  else {
+    const invalidBoardLetters = document.querySelectorAll('.invalid:not(.active)');
+  
+    if (invalidBoardLetters.length) {
+  
+      invalidBoardLetters.forEach(letter => letter.classList.remove('invalid'));
+    }
+  
+    currentLetterIdx++;
+  }
+};
+
+function handleInvalidLetterCollision(letter) {
+  letter.classList.add('active', 'invalid');
+  letter.setAttribute('data-idx', `${currentLetterIdx}`);
+
+  // const leadSegment = segments[currentSegmentIdx];
+  // const letterText = letter.innerText;
+
+  // letter.innerText = '-';
+
+  // if (leadSegment.length > 1) {
+  //   const lead = leadSegment.pop();
+  //   const lastInvalidIdx = leadSegment
+  //     .findLastIndex(letter => letter.classList.contains('invalid'));
+  //   const targetLetter = lastInvalidIdx === -1 ? leadSegment[0] : leadSegment[lastInvalidIdx];
+  //   const { gridArea: targetCoords } = targetLetter.style;
+  //   const { gridArea: leadCoords } = lead.style;
+
+  //   lead.classList.remove('lead');
+
+  //   if (lastInvalidIdx === -1) {
+  //     targetLetter.classList.remove('segment-rear');
+
+  //     lead.classList.add('segment-rear');
+
+  //     leadSegment.unshift(lead);
+  //   } else {
+  //     if (
+  //       currentLetterIdx !== 0 &&
+  //       !leadSegment.find(letter => letter.dataset.idx === currentLetterIdx.toString())
+  //     ) letter.classList.add('guess-group-rear');
+
+  //     leadSegment.splice(lastInvalidIdx + 1, 0, lead);
+  //   }
+
+  //   for (let i = (lastInvalidIdx === -1 ? 0 : lastInvalidIdx); i < leadSegment.length; i++) {
+  //     const letter = leadSegment[i];
+
+  //     if (i === lastInvalidIdx) letter.style.gridArea = targetCoords;
+  //     else if (i === leadSegment.length - 1) {
+  //       letter.classList.add('lead');
+  //       letter.style.gridArea = leadCoords;
+  //     } else {
+  //       const { gridArea: nextCoords } = leadSegment[i + 1].style;
+
+  //       letter.style.gridArea = nextCoords;
+  //     }
+  //   }
+  // }
+
+  placeLetter(letter.innerText, true);
 };
 
 function setNewWord() {
@@ -251,11 +290,9 @@ function setNewWord() {
   const currentLengthWords = words.filter(w => w.length === wordLengthPattern[wordLengthIdx]);
 
   [currentWord] = currentLengthWords.splice(getRandomIdx(currentLengthWords.length), 1);
-  
+
   successesHeading.innerText = currentWord.split('').map(_ => '_').join('');
 
-  attemptsHeading.innerText = '';
-  
   currentWord.split('').forEach(letter => placeLetter(letter));
 
   currentLetterIdx = 0;
@@ -272,21 +309,21 @@ function updateLetterPositions() {
         ? segments[segmentIdx + 1][0]
         : segment[letterIdx + 1];
       const { gridArea: nextCoords } = nextLetter ? nextLetter.style : {};
-  
+
       if (
         letter.classList.contains('segment-rear') ||
         letter.classList.contains('guess-group-rear')
       ) setDirection(letter, nextCoords);
-  
+
       if (!nextLetter) letter.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
       else {
         if (segmentIdx === 0 && letterIdx === 0) {
           const [rowToAdd, columnToAdd] = letter.style.gridArea.split(' / ')
             .map(coord => Number(coord));
-          
+
           availableCoords.push({ row: rowToAdd, column: columnToAdd });
         }
-  
+
         letter.style.gridArea = nextCoords;
       }
     });
@@ -297,22 +334,22 @@ function setDirection(letter, nextCoords) {
   const [currentRow, currentColumn] = letter.style.gridArea
     .split(' / ')
     .map(coord => Number(coord));
-    
+
   const [nextRow, nextColumn] = nextCoords
     ? nextCoords.split(' / ').map(coord => Number(coord))
     : Object.values(leadCoords);
-  
-  let spacerDirection;
+
+  let dividerDirection;
 
   if (currentRow === nextRow) {
-    if (currentColumn < nextColumn) spacerDirection = 'east';
-    else spacerDirection = 'west';
+    if (currentColumn < nextColumn) dividerDirection = 'east';
+    else dividerDirection = 'west';
   } else {
-    if (currentRow < nextRow) spacerDirection = 'south';
-    else spacerDirection = 'north';
+    if (currentRow < nextRow) dividerDirection = 'south';
+    else dividerDirection = 'north';
   }
 
-  letter.setAttribute('data-direction', spacerDirection);
+  letter.setAttribute('data-direction', dividerDirection);
 };
 
 function handleKeyUp(e) {
