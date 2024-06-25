@@ -50,7 +50,7 @@ function initiateBoard() {
 
   currentWord.substring(3).split('').forEach(letter => placeLetter(letter));
 
-  gameLoop = setInterval(wriggleWord, 175);
+  gameLoop = setInterval(wriggleWord, 125);
 };
 
 function setAvailableCoords() {
@@ -152,6 +152,8 @@ function wriggleWord() {
     if (newWord) {
       collidingLetter.classList.add('segment-rear');
 
+      setDirection(collidingLetter);
+
       segments.push([collidingLetter]);
 
       currentSegmentIdx++;
@@ -216,6 +218,19 @@ function handleValidLetterCollision(letter) {
       validLetters.forEach(letter => leadSegment.splice(leadSegment.length - 1, 0, letter));
 
       coords.forEach((coord, idx) => leadSegment[idx + firstValidIdx].style.gridArea = coord);
+
+      const [rearmostLetter] = leadSegment;
+
+      if (!rearmostLetter.classList.contains('segment-rear')) {
+        leadSegment
+          .find(
+            letter => letter.classList.contains('segment-rear')
+          ).classList.remove('segment-rear');
+
+        rearmostLetter.classList.add('segment-rear');
+
+        setDirection(rearmostLetter, leadSegment[1].style.gridArea);
+      }
     }
   }
 
@@ -235,51 +250,6 @@ function handleValidLetterCollision(letter) {
 function handleInvalidLetterCollision(letter) {
   letter.classList.add('active', 'invalid');
   letter.setAttribute('data-idx', `${currentLetterIdx}`);
-
-  // const leadSegment = segments[currentSegmentIdx];
-  // const letterText = letter.innerText;
-
-  // letter.innerText = '-';
-
-  // if (leadSegment.length > 1) {
-  //   const lead = leadSegment.pop();
-  //   const lastInvalidIdx = leadSegment
-  //     .findLastIndex(letter => letter.classList.contains('invalid'));
-  //   const targetLetter = lastInvalidIdx === -1 ? leadSegment[0] : leadSegment[lastInvalidIdx];
-  //   const { gridArea: targetCoords } = targetLetter.style;
-  //   const { gridArea: leadCoords } = lead.style;
-
-  //   lead.classList.remove('lead');
-
-  //   if (lastInvalidIdx === -1) {
-  //     targetLetter.classList.remove('segment-rear');
-
-  //     lead.classList.add('segment-rear');
-
-  //     leadSegment.unshift(lead);
-  //   } else {
-  //     if (
-  //       currentLetterIdx !== 0 &&
-  //       !leadSegment.find(letter => letter.dataset.idx === currentLetterIdx.toString())
-  //     ) letter.classList.add('guess-group-rear');
-
-  //     leadSegment.splice(lastInvalidIdx + 1, 0, lead);
-  //   }
-
-  //   for (let i = (lastInvalidIdx === -1 ? 0 : lastInvalidIdx); i < leadSegment.length; i++) {
-  //     const letter = leadSegment[i];
-
-  //     if (i === lastInvalidIdx) letter.style.gridArea = targetCoords;
-  //     else if (i === leadSegment.length - 1) {
-  //       letter.classList.add('lead');
-  //       letter.style.gridArea = leadCoords;
-  //     } else {
-  //       const { gridArea: nextCoords } = leadSegment[i + 1].style;
-
-  //       letter.style.gridArea = nextCoords;
-  //     }
-  //   }
-  // }
 
   placeLetter(letter.innerText, true);
 };
@@ -310,10 +280,7 @@ function updateLetterPositions() {
         : segment[letterIdx + 1];
       const { gridArea: nextCoords } = nextLetter ? nextLetter.style : {};
 
-      if (
-        letter.classList.contains('segment-rear') ||
-        letter.classList.contains('guess-group-rear')
-      ) setDirection(letter, nextCoords);
+      if (letter.classList.contains('segment-rear')) setDirection(letter, nextCoords);
 
       if (!nextLetter) letter.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
       else {
@@ -342,7 +309,8 @@ function setDirection(letter, nextCoords) {
   let dividerDirection;
 
   if (currentRow === nextRow) {
-    if (currentColumn < nextColumn) dividerDirection = 'east';
+    if (currentColumn === nextColumn) dividerDirection = leadDirection;
+    else if (currentColumn < nextColumn) dividerDirection = 'east';
     else dividerDirection = 'west';
   } else {
     if (currentRow < nextRow) dividerDirection = 'south';
