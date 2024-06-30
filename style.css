@@ -88,7 +88,7 @@ section {
   text-decoration: line-through;
   text-decoration-thickness: 1px;
   font-weight: normal;
-  opacity: .8;
+  /* opacity: .8; */
 }
 
 .letter.invalid:not(.active) {

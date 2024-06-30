@@ -50,7 +50,7 @@ function initiateBoard() {
 
   currentWord.substring(3).split('').forEach(letter => placeLetter(letter));
 
-  gameLoop = setInterval(wriggleWord, 125);
+  gameLoop = setInterval(wriggleWord, 150);
 };
 
 function setAvailableCoords() {
@@ -71,7 +71,7 @@ function setAvailableCoords() {
 function activateWrig() {
   leadDirection = 'east';
 
-  const currentLengthWords = words.filter(w => w.length === wordLengthPattern[wordLengthIdx]);
+  const currentLengthWords = words.filter(w => w.length === wordLengthPattern[0]);
 
   [currentWord] = currentLengthWords.splice(getRandomIdx(currentLengthWords.length), 1);
 
@@ -81,10 +81,15 @@ function activateWrig() {
   let currentColumn = centerColumn - 2;
 
   firstLetters.split('').forEach((letter, idx) => {
+    let positionClassStr = '';
+    
+    if (idx === 0) positionClassStr = ' rear segment-rear';
+    else if (idx === 2) positionClassStr = ' lead';
+    
     const styleAttr = `style="grid-area: ${centerRow} / ${currentColumn};"`;
 
     gameboard.insertAdjacentHTML('beforeend', `
-      <span class="letter ${letter} active ${idx === 2 ? 'lead' : ''}" ${styleAttr}>${letter}</span>
+      <span class="letter ${letter} active${positionClassStr}" ${styleAttr}>${letter}</span>
     `);
 
     firstSegment.push(document.querySelector(`[${styleAttr}]`));
@@ -108,14 +113,19 @@ function getRandomIdx(max) {
 };
 
 function placeLetter(letter, invalid) {
-  const randomIdx = getRandomIdx(availableCoords.length - 1);
+  const randomIdx = getRandomIdx(availableCoords.length);
   const { row, column } = availableCoords[randomIdx];
 
+  removeAvailableCoords({ row, column });
+  
   gameboard.insertAdjacentHTML('beforeend', `
-    <span class="letter ${letter}${invalid ? ' invalid' : ''}" style="grid-area: ${row} / ${column};">${letter}</span>
+    <span class="letter ${letter}" style="grid-area: ${row} / ${column};">${letter}</span>
   `);
 
-  removeAvailableCoords({ row, column });
+  if (invalid) {
+    document.querySelectorAll(`.${letter}:not(.active)`)
+      .forEach(letter => letter.classList.add('invalid'));
+  }
 };
 
 function removeAvailableCoords(coords) {
@@ -142,7 +152,7 @@ function wriggleWord() {
   const collidingLetter = document
     .querySelector(`[style="grid-area: ${leadCoords.row} / ${leadCoords.column};"]`);
 
-  if (collidingLetter) {
+  if (collidingLetter && !collidingLetter.classList.contains('rear')) {
     if (collidingLetter.classList.contains('active')) return gameOver();
     else if (collidingLetter.classList.contains('invalid')) return updateLetterPositions();
 
@@ -194,6 +204,58 @@ function gameOver() {
   clearInterval(gameLoop);
   console.log('Game Over!');
   // initiateBoard();
+};
+
+function updateLetterPositions() {
+  segments.forEach((segment, segmentIdx) => {
+    const lastLetterIdx = segment.length - 1;
+
+    segment.forEach((letter, letterIdx) => {
+      const nextLetter = (letterIdx === lastLetterIdx && segmentIdx !== currentSegmentIdx)
+        ? segments[segmentIdx + 1][0]
+        : segment[letterIdx + 1];
+      const { gridArea: nextCoords } = nextLetter ? nextLetter.style : {};
+
+      if (letter.classList.contains('segment-rear') && !letter.classList.contains('rear')) {
+        setDirection(letter, nextCoords);
+      }
+
+      if (!nextLetter) letter.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
+      else {
+        if (segmentIdx === 0 && letterIdx === 0) {
+          const [rowToAdd, columnToAdd] = letter.style.gridArea.split(' / ')
+            .map(coord => Number(coord));
+
+          availableCoords.push({ row: rowToAdd, column: columnToAdd });
+        }
+
+        letter.style.gridArea = nextCoords;
+      }
+    });
+  });
+};
+
+function setDirection(letter, nextCoords) {
+  const [currentRow, currentColumn] = letter.style.gridArea
+    .split(' / ')
+    .map(coord => Number(coord));
+
+  const [nextRow, nextColumn] = nextCoords
+    ? nextCoords.split(' / ').map(coord => Number(coord))
+    : Object.values(leadCoords);
+
+  let dividerDirection;
+
+  if (currentRow === nextRow) {
+    if (currentColumn === nextColumn) dividerDirection = leadDirection;
+    else if (currentColumn < nextColumn) dividerDirection = 'east';
+    else dividerDirection = 'west';
+  } else {
+    if (currentRow < nextRow) dividerDirection = 'south';
+    else dividerDirection = 'north';
+  }
+
+  letter.setAttribute('data-direction', dividerDirection);
 };
 
 function handleValidLetterCollision(letter) {
@@ -268,56 +330,6 @@ function setNewWord() {
   currentLetterIdx = 0;
 
   newWord = true;
-};
-
-function updateLetterPositions() {
-  segments.forEach((segment, segmentIdx) => {
-    const lastLetterIdx = segment.length - 1;
-
-    segment.forEach((letter, letterIdx) => {
-      const nextLetter = (letterIdx === lastLetterIdx && segmentIdx !== currentSegmentIdx)
-        ? segments[segmentIdx + 1][0]
-        : segment[letterIdx + 1];
-      const { gridArea: nextCoords } = nextLetter ? nextLetter.style : {};
-
-      if (letter.classList.contains('segment-rear')) setDirection(letter, nextCoords);
-
-      if (!nextLetter) letter.style.gridArea = `${leadCoords.row} / ${leadCoords.column}`;
-      else {
-        if (segmentIdx === 0 && letterIdx === 0) {
-          const [rowToAdd, columnToAdd] = letter.style.gridArea.split(' / ')
-            .map(coord => Number(coord));
-
-          availableCoords.push({ row: rowToAdd, column: columnToAdd });
-        }
-
-        letter.style.gridArea = nextCoords;
-      }
-    });
-  });
-};
-
-function setDirection(letter, nextCoords) {
-  const [currentRow, currentColumn] = letter.style.gridArea
-    .split(' / ')
-    .map(coord => Number(coord));
-
-  const [nextRow, nextColumn] = nextCoords
-    ? nextCoords.split(' / ').map(coord => Number(coord))
-    : Object.values(leadCoords);
-
-  let dividerDirection;
-
-  if (currentRow === nextRow) {
-    if (currentColumn === nextColumn) dividerDirection = leadDirection;
-    else if (currentColumn < nextColumn) dividerDirection = 'east';
-    else dividerDirection = 'west';
-  } else {
-    if (currentRow < nextRow) dividerDirection = 'south';
-    else dividerDirection = 'north';
-  }
-
-  letter.setAttribute('data-direction', dividerDirection);
 };
 
 function handleKeyUp(e) {
